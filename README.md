@@ -6,7 +6,7 @@ Custom Integration für Home Assistant, die Zähler (Wärme, Wasser, Gas, Strom)
 
 Alles wird im Dashboard **Zähler-Ablesung** in der Seitenleiste eingerichtet: Zähler anlegen, Kamera und Licht wählen, mit einem Testbild die Helligkeit ausprobieren, Intervall und Prüfungen einstellen. Automationen, Skripte und Helfer sind nicht nötig.
 
-> Status: Version 0.2.0.
+> Status: Version 0.2.1.
 
 ## Funktionsweise
 

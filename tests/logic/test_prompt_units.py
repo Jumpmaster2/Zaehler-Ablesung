@@ -11,6 +11,7 @@ def test_instructions_german() -> None:
     assert "Wärmezählers" in text
     assert "in MWh mit 3 Nachkommastellen" in text
     assert "Die Linie oben ist der Rahmen.\n" in text
+    assert "gehören die letzten 3 Ziffern hinter das Komma" in text
     assert text.endswith("antworte nur: unlesbar")
 
 
@@ -19,6 +20,7 @@ def test_instructions_english_without_decimals() -> None:
     assert "water meter" in text
     assert "without decimals" in text
     assert "with all decimals" not in text
+    assert "decimal point" not in text
     assert "\n\n" not in text
     assert text.endswith("answer only: unreadable")
 

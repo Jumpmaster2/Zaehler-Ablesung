@@ -59,6 +59,7 @@ TEMPLATES = {
     "de": (
         "Das Bild zeigt die Anzeige eines {meter}. Der Zählerstand wird in {unit} "
         "{decimals_text} angezeigt (Beispiel: {example}).\n"
+        "{point}"
         "{hints}"
         "Prüfe jede Ziffer einzeln.\n"
         "Gib ausschließlich den angezeigten Zahlenwert {all_decimals}zurück, mit Punkt als "
@@ -68,6 +69,7 @@ TEMPLATES = {
     "en": (
         "The picture shows the display of a {meter}. The reading is shown in {unit} "
         "{decimals_text} (example: {example}).\n"
+        "{point}"
         "{hints}"
         "Check every digit on its own.\n"
         "Return only the displayed number {all_decimals}with a dot as decimal separator, "
@@ -107,6 +109,12 @@ def build_instructions(
             else f"mit {decimals} Nachkommastellen"
         )
         all_decimals = "mit allen Nachkommastellen " if decimals else ""
+        point = (
+            "Ist das Komma bzw. der Dezimalpunkt auf dem Bild nicht zu erkennen, gehören die "
+            f"letzten {decimals} Ziffern hinter das Komma.\n"
+            if decimals
+            else ""
+        )
     else:
         decimals_text = (
             "without decimals"
@@ -116,6 +124,12 @@ def build_instructions(
             else f"with {decimals} decimals"
         )
         all_decimals = "with all decimals " if decimals else ""
+        point = (
+            f"If the decimal point is not visible in the picture, the last {decimals} digits "
+            "are the decimals.\n"
+            if decimals
+            else ""
+        )
     hints = (hints or "").strip()
     return TEMPLATES[lang].format(
         meter=METER_NAMES[lang].get(meter_type, METER_NAMES[lang][TYPE_OTHER]),
@@ -124,4 +138,5 @@ def build_instructions(
         example=example(decimals),
         hints=f"{hints}\n" if hints else "",
         all_decimals=all_decimals,
+        point=point,
     )
