@@ -27,6 +27,10 @@ from .const import (
     CONF_CAMERA,
     CONF_CONDITION,
     CONF_CONFIRMATIONS,
+    CONF_CROP_BOTTOM,
+    CONF_CROP_LEFT,
+    CONF_CROP_RIGHT,
+    CONF_CROP_TOP,
     CONF_DECIMALS,
     CONF_DISCARD,
     CONF_HINTS,
@@ -38,6 +42,7 @@ from .const import (
     CONF_MAX_RATE,
     CONF_METER_AI_TASK,
     CONF_NOTIFY,
+    CONF_ROTATE,
     CONF_TYPE,
     CONF_UNIT,
     CONF_WARMUP,
@@ -47,6 +52,7 @@ from .const import (
     IMAGE_NAME,
     LOGGER,
     MEDIA_FOLDER,
+    ORIGINAL_NAME,
     REJECTED_FOLDER,
     REJECTED_KEEP,
     SIGNAL_UPDATE,
@@ -55,6 +61,7 @@ from .const import (
     meter_defaults,
 )
 from .logic import reading as rd
+from .logic.image import needs_processing, process
 from .logic.prompt import build_instructions
 from .logic.units import rate_unit
 
@@ -215,15 +222,38 @@ class Meter:
                 await self._light(False)
             except HomeAssistantError as err:
                 LOGGER.warning("%s: could not switch the light off: %s", self.title, err)
-        self.image = content
+        image = await self.hass.async_add_executor_job(self._store_image, content)
+        self.image = image
         self.image_time = dt_util.utcnow()
-        await self.hass.async_add_executor_job(self._write_image, content)
         self.notify()
-        return content
+        return image
 
-    def _write_image(self, content: bytes) -> None:
+    def _crop(self) -> tuple[float, float, float, float, str]:
+        return (
+            float(self.opt(CONF_CROP_LEFT)),
+            float(self.opt(CONF_CROP_TOP)),
+            float(self.opt(CONF_CROP_RIGHT)),
+            float(self.opt(CONF_CROP_BOTTOM)),
+            str(self.opt(CONF_ROTATE)),
+        )
+
+    def _store_image(self, content: bytes) -> bytes:
+        """Keep the original picture and the cropped one the AI reads (executor)."""
         self.folder.mkdir(parents=True, exist_ok=True)
-        (self.folder / IMAGE_NAME).write_bytes(content)
+        (self.folder / ORIGINAL_NAME).write_bytes(content)
+        image = process(content, *self._crop())
+        (self.folder / IMAGE_NAME).write_bytes(image)
+        return image
+
+    def load_original(self) -> bytes | None:
+        """Uncropped picture of the last run (executor), for choosing the crop."""
+        path = self.folder / ORIGINAL_NAME
+        if path.exists():
+            return path.read_bytes()
+        path = self.folder / IMAGE_NAME
+        if path.exists() and not needs_processing(*self._crop()):
+            return path.read_bytes()
+        return None
 
     def _keep_rejected(self, stamp: str) -> None:
         """Copy the last picture of a rejected reading and keep only the newest ones."""
@@ -237,9 +267,14 @@ class Meter:
             old.unlink(missing_ok=True)
 
     def load_image(self) -> None:
-        """Picture of the last run (executor)."""
+        """Picture of the last run (executor); cropped again in case the crop changed."""
         path = self.folder / IMAGE_NAME
-        if path.exists():
+        original = self.folder / ORIGINAL_NAME
+        if original.exists():
+            self.image = process(original.read_bytes(), *self._crop())
+            path.write_bytes(self.image)
+            self.image_time = dt_util.utc_from_timestamp(original.stat().st_mtime)
+        elif path.exists():
             self.image = path.read_bytes()
             self.image_time = dt_util.utc_from_timestamp(path.stat().st_mtime)
 

@@ -11,7 +11,7 @@ from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.zaehler_ablesung.const import DOMAIN, EVENT_READING
 
-from .conftest import setup_entry
+from .conftest import HEAT_METER, setup_entry
 
 READING = "sensor.heat_meter_reading"
 POWER = "sensor.heat_mean_power"
@@ -232,3 +232,33 @@ async def test_services_and_restart(hass: HomeAssistant, base, ai) -> None:
     await hass.async_block_till_done(wait_background_tasks=True)
     assert hass.states.get(READING).state == "1.501"
     assert _meter(entry).image is not None
+
+
+async def test_crop(hass: HomeAssistant, base, ai, hass_ws_client) -> None:
+    import base64
+    import io
+    from unittest.mock import patch
+
+    from homeassistant.components.camera import Image as CamImage
+    from PIL import Image
+
+    out = io.BytesIO()
+    Image.new("RGB", (1000, 800), (0, 0, 0)).save(out, format="JPEG")
+    jpeg = out.getvalue()
+    heat = {**HEAT_METER, "crop_left": 10, "crop_top": 50, "crop_right": 60, "crop_bottom": 100}
+    entry = await setup_entry(hass, meters=[("Heat", heat)])
+    meter = _meter(entry)
+
+    async def get_image(hass, entity_id, timeout=10, width=None, height=None):
+        return CamImage("image/jpeg", jpeg)
+
+    with patch(
+        "custom_components.zaehler_ablesung.meter.camera.async_get_image", side_effect=get_image
+    ):
+        assert await meter.async_picture_only()
+    # the AI and the camera entity get the crop, the original is kept for the panel
+    assert Image.open(io.BytesIO(meter.image)).size == (500, 400)
+    client = await hass_ws_client(hass)
+    await client.send_json_auto_id({"type": f"{DOMAIN}/original", "subentry_id": meter.id})
+    msg = await client.receive_json()
+    assert base64.b64decode(msg["result"]["image"]) == jpeg

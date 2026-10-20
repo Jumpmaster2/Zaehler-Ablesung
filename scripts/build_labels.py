@@ -44,6 +44,7 @@ def labels(translation: dict[str, Any]) -> dict[str, Any]:
         "errors": meter["error"],
         "status": entity["sensor"]["status"]["state"],
         "types": translation["selector"]["meter_type"]["options"],
+        "rotate": translation["selector"]["rotate"]["options"],
         "entities": {
             key: value["name"] for platform in entity.values() for key, value in platform.items()
         },

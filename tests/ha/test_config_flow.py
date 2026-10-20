@@ -17,6 +17,13 @@ DETAILS = {
         "warmup": 3,
         "discard_frames": 2,
     },
+    "image_section": {
+        "crop_left": 0,
+        "crop_top": 40,
+        "crop_right": 100,
+        "crop_bottom": 100,
+        "rotate": "180",
+    },
     "display_section": {"unit": "m³", "decimals": 3, "hints": "  "},
     "schedule_section": {"interval": 60, "interval_off": 360},
     "checks_section": {
@@ -68,6 +75,8 @@ async def test_meter_subentry(hass: HomeAssistant, base) -> None:
     assert sub.data["meter_type"] == "water"
     assert sub.data["light_brightness"] == 40
     assert "hints" not in sub.data
+    assert sub.data["crop_top"] == 40
+    assert sub.data["rotate"] == "180"
     assert hass.states.get("sensor.water_meter_reading")
 
     # reconfigure: rename and change the decimals

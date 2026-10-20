@@ -47,6 +47,9 @@ const UI = {
     previewLast: "Letztes Bild der Ablesung",
     previewHint: "Testbild nimmt ein Bild mit den gespeicherten Einstellungen auf. Erst speichern, dann ausprobieren.",
     prompt: "Anweisung an die KI anzeigen",
+    cropHelp: "Rahmen um die Anzeige ziehen (Maus oder Finger). Gespeichert wird mit „Speichern“, das nächste Bild ist dann zugeschnitten.",
+    cropNoImage: "Noch kein Bild. Erst speichern und ein Testbild aufnehmen.",
+    cropReset: "Ganzes Bild",
     columns: { name: "Name", type: "Art", reading: "Zählerstand", status: "Status" },
     warnings: "Hinweise",
     missing: "Eingestellte Entitäten fehlen",
@@ -96,6 +99,9 @@ const UI = {
     previewLast: "Last picture of a reading",
     previewHint: "Test picture takes a picture with the saved settings. Save first, then try it.",
     prompt: "Show the instructions for the AI",
+    cropHelp: "Draw a frame around the display (mouse or finger). Saved with “Save”, the next picture is then cropped.",
+    cropNoImage: "No picture yet. Save first and take a test picture.",
+    cropReset: "Whole picture",
     columns: { name: "Name", type: "Type", reading: "Meter reading", status: "Status" },
     warnings: "Notes",
     missing: "Configured entities are missing",
@@ -160,6 +166,9 @@ class ZaehlerAblesungPanel extends HTMLElement {
     this.shadowRoot.addEventListener("click", (ev) => this._onClick(ev));
     this.shadowRoot.addEventListener("input", (ev) => this._onInput(ev));
     this.shadowRoot.addEventListener("change", (ev) => this._onInput(ev, true));
+    for (const type of ["pointerdown", "pointermove", "pointerup", "pointercancel"]) {
+      this.shadowRoot.addEventListener(type, (ev) => this._cropPointer(ev));
+    }
   }
 
   set hass(hass) {
@@ -518,6 +527,82 @@ class ZaehlerAblesungPanel extends HTMLElement {
   _updatePreview() {
     const box = this.shadowRoot.querySelector(".preview");
     if (box) box.innerHTML = this._previewHtml();
+    // a new picture: load the uncropped one again for the crop editor
+    const e = this._edit;
+    const meter = e?.id ? this._cfg.meters.find((m) => m.id === e.id) : null;
+    const time = meter ? this._state(meter.entities.status)?.attributes?.image_time : null;
+    if (e && time && time !== e.originalTime) this._loadOriginal();
+  }
+
+  async _loadOriginal() {
+    const e = this._edit;
+    if (!e?.id) return;
+    const meter = this._cfg.meters.find((m) => m.id === e.id);
+    e.originalTime = this._state(meter?.entities?.status)?.attributes?.image_time || null;
+    try {
+      const result = await this._ws({ type: `${DOMAIN}/original`, subentry_id: e.id });
+      if (this._edit !== e) return;
+      e.original = result.image ? `data:image/jpeg;base64,${result.image}` : null;
+      const box = this.shadowRoot.querySelector(".crop-box");
+      if (box) box.outerHTML = this._cropHtml();
+    } catch (err) {
+      this._toast(err.message || String(err), true);
+    }
+  }
+
+  _cropRect() {
+    const d = this._edit.data;
+    const n = (k, def) => (d[k] === null || d[k] === undefined || d[k] === "" ? def : Number(d[k]));
+    const l = Math.min(n("crop_left", 0), n("crop_right", 100));
+    const r = Math.max(n("crop_left", 0), n("crop_right", 100));
+    const t = Math.min(n("crop_top", 0), n("crop_bottom", 100));
+    const b = Math.max(n("crop_top", 0), n("crop_bottom", 100));
+    return { l, t, r, b };
+  }
+
+  _cropHtml() {
+    const ui = this.ui;
+    const e = this._edit;
+    if (!e.original) return `<div class="crop-box"><div class="muted small">${esc(e.id ? ui.cropNoImage : ui.previewHint)}</div></div>`;
+    const { l, t, r, b } = this._cropRect();
+    return `<div class="crop-box">
+      <div class="crop-wrap" data-crop="1"><img src="${e.original}" alt="" draggable="false">
+        <div class="crop-rect" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"></div></div>
+      <div class="actions"><span class="msg small">${esc(ui.cropHelp)}</span><button class="btn" data-action="crop-reset">${esc(ui.cropReset)}</button></div>
+    </div>`;
+  }
+
+  _setCrop(l, t, r, b) {
+    const round = (v) => Math.round(Math.max(0, Math.min(100, v)) * 2) / 2;
+    const values = { crop_left: round(l), crop_top: round(t), crop_right: round(r), crop_bottom: round(b) };
+    for (const [k, v] of Object.entries(values)) {
+      this._edit.data[k] = v;
+      const input = this.shadowRoot.querySelector(`input[data-card-id="edit"][data-k="${k}"]`);
+      if (input) input.value = v;
+    }
+    const rect = this.shadowRoot.querySelector(".crop-rect");
+    if (rect) Object.assign(rect.style, { left: `${values.crop_left}%`, top: `${values.crop_top}%`, width: `${values.crop_right - values.crop_left}%`, height: `${values.crop_bottom - values.crop_top}%` });
+  }
+
+  _cropPointer(ev) {
+    const wrap = ev.target.closest?.("[data-crop]");
+    if (ev.type === "pointerdown") {
+      if (!wrap) return;
+      ev.preventDefault();
+      wrap.setPointerCapture(ev.pointerId);
+      const box = wrap.getBoundingClientRect();
+      const x = ((ev.clientX - box.left) / box.width) * 100;
+      const y = ((ev.clientY - box.top) / box.height) * 100;
+      this._drag = { wrap, x, y };
+      return;
+    }
+    if (!this._drag) return;
+    const box = this._drag.wrap.getBoundingClientRect();
+    const x = ((ev.clientX - box.left) / box.width) * 100;
+    const y = ((ev.clientY - box.top) / box.height) * 100;
+    const { x: x0, y: y0 } = this._drag;
+    if (Math.abs(x - x0) > 0.5 && Math.abs(y - y0) > 0.5) this._setCrop(Math.min(x0, x), Math.min(y0, y), Math.max(x0, x), Math.max(y0, y));
+    if (ev.type === "pointerup" || ev.type === "pointercancel") this._drag = null;
   }
 
   _editor() {
@@ -529,7 +614,8 @@ class ZaehlerAblesungPanel extends HTMLElement {
       .map(({ id, fields }) => {
         const [name, desc] = this.labels.sections[id] || [id, ""];
         const html = Object.entries(fields).map(([key, spec]) => this._field("edit", key, spec, e.data[key])).join("");
-        const body = `${desc ? `<p class="desc">${esc(desc)}</p>` : ""}<div class="fields">${html}</div>`;
+        const crop = id === "image_section" ? this._cropHtml() : "";
+        const body = `${desc ? `<p class="desc">${esc(desc)}</p>` : ""}${crop}<div class="fields">${html}</div>`;
         if (!COLLAPSED.has(id)) return `<h3>${esc(name)}</h3>${body}`;
         return `<details data-section="${id}" ${e.open.has(id) ? "open" : ""}><summary>${esc(name)}</summary>${body}</details>`;
       })
@@ -675,6 +761,11 @@ class ZaehlerAblesungPanel extends HTMLElement {
     }
     this._setValue(cardId, key, value);
     if (cardId === "edit" && key === "camera" && isChange) this._updatePreview();
+    if (cardId === "edit" && key.startsWith("crop_")) {
+      const { l, t, r, b } = this._cropRect();
+      const rect = this.shadowRoot.querySelector(".crop-rect");
+      if (rect) Object.assign(rect.style, { left: `${l}%`, top: `${t}%`, width: `${r - l}%`, height: `${b - t}%` });
+    }
     if (cardId === "edit" && key === "unit" && isChange) this._rerenderContent();
   }
 
@@ -712,7 +803,8 @@ class ZaehlerAblesungPanel extends HTMLElement {
 
   _openEditor(meter) {
     if (meter) {
-      this._edit = { id: meter.id, title: meter.title, originalTitle: meter.title, data: clone(meter.data), open: new Set(), prompt: null };
+      this._edit = { id: meter.id, title: meter.title, originalTitle: meter.title, data: clone(meter.data), open: new Set(), prompt: null, original: null };
+      this._loadOriginal();
     } else {
       const type = "heat";
       this._edit = { id: null, title: "", data: { ...clone(this._cfg.type_defaults[type]) }, open: new Set(), prompt: null };
@@ -783,6 +875,9 @@ class ZaehlerAblesungPanel extends HTMLElement {
         break;
       case "set-reading":
         await this._setReading(d.meter, el);
+        break;
+      case "crop-reset":
+        this._setCrop(0, 0, 100, 100);
         break;
       case "close-edit":
         this._edit = null;
@@ -1020,6 +1115,11 @@ details .desc { margin-top:8px; }
 .preview { display:flex; flex-direction:column; gap:6px; }
 .preview .actions { margin-top:4px; }
 .field.wide { grid-column:1 / -1; }
+.crop-box { margin:8px 0; }
+.crop-wrap { position:relative; display:inline-block; max-width:100%; touch-action:none; cursor:crosshair; user-select:none; line-height:0; }
+.crop-wrap img { max-width:100%; max-height:420px; border-radius:8px; display:block; pointer-events:none; }
+.crop-rect { position:absolute; border:2px solid var(--primary-color); box-shadow:0 0 0 9999px rgba(0,0,0,.45); border-radius:2px; pointer-events:none; }
+.crop-wrap { overflow:hidden; border-radius:8px; }
 textarea { font:inherit; color:var(--primary-text-color); background:var(--input-fill-color, var(--secondary-background-color, #f5f5f5)); border:1px solid var(--divider-color, #ccc); border-radius:8px; padding:8px 10px; width:100%; resize:vertical; }
 textarea:focus { outline:2px solid var(--primary-color); outline-offset:-1px; }
 pre.prompt { white-space:pre-wrap; font-size:13px; background:var(--secondary-background-color, #f5f5f5); border-radius:8px; padding:10px; margin:8px 0 0; }

@@ -72,6 +72,24 @@
                 "discard_frames": "Bilder, die vor dem eigentlichen Bild weggeworfen werden. Kameras mit Puffer (ESP32-CAM) liefern sonst ein altes Bild ohne Licht."
               }
             },
+            "image_section": {
+              "name": "Bildausschnitt",
+              "description": "Nur dieser Teil des Bildes geht an die KI. Bei Weitwinkel-Kameras auf die Anzeige zuschneiden; im Dashboard lässt sich der Ausschnitt mit der Maus aufziehen.",
+              "data": {
+                "crop_left": "Links",
+                "crop_top": "Oben",
+                "crop_right": "Rechts",
+                "crop_bottom": "Unten",
+                "rotate": "Drehen"
+              },
+              "data_description": {
+                "crop_left": "Linker Rand des Ausschnitts in Prozent der Bildbreite.",
+                "crop_top": "Oberer Rand des Ausschnitts in Prozent der Bildhöhe.",
+                "crop_right": "Rechter Rand des Ausschnitts in Prozent der Bildbreite.",
+                "crop_bottom": "Unterer Rand des Ausschnitts in Prozent der Bildhöhe.",
+                "rotate": "Dreht das Bild im Uhrzeigersinn, falls die Kamera seitlich oder kopfüber montiert ist (nach dem Zuschneiden)."
+              }
+            },
             "display_section": {
               "name": "Anzeige",
               "description": "Was die Anzeige zeigt. Die Hinweise bekommt die KI mit.",
@@ -145,6 +163,24 @@
                 "discard_frames": "Bilder, die vor dem eigentlichen Bild weggeworfen werden. Kameras mit Puffer (ESP32-CAM) liefern sonst ein altes Bild ohne Licht."
               }
             },
+            "image_section": {
+              "name": "Bildausschnitt",
+              "description": "Nur dieser Teil des Bildes geht an die KI. Bei Weitwinkel-Kameras auf die Anzeige zuschneiden; im Dashboard lässt sich der Ausschnitt mit der Maus aufziehen.",
+              "data": {
+                "crop_left": "Links",
+                "crop_top": "Oben",
+                "crop_right": "Rechts",
+                "crop_bottom": "Unten",
+                "rotate": "Drehen"
+              },
+              "data_description": {
+                "crop_left": "Linker Rand des Ausschnitts in Prozent der Bildbreite.",
+                "crop_top": "Oberer Rand des Ausschnitts in Prozent der Bildhöhe.",
+                "crop_right": "Rechter Rand des Ausschnitts in Prozent der Bildbreite.",
+                "crop_bottom": "Unterer Rand des Ausschnitts in Prozent der Bildhöhe.",
+                "rotate": "Dreht das Bild im Uhrzeigersinn, falls die Kamera seitlich oder kopfüber montiert ist (nach dem Zuschneiden)."
+              }
+            },
             "display_section": {
               "name": "Anzeige",
               "description": "Was die Anzeige zeigt. Die Hinweise bekommt die KI mit.",
@@ -211,6 +247,14 @@
         "gas": "Gaszähler",
         "electricity": "Stromzähler",
         "other": "Anderer Zähler"
+      }
+    },
+    "rotate": {
+      "options": {
+        "0": "Nicht drehen",
+        "90": "90° im Uhrzeigersinn",
+        "180": "180°",
+        "270": "90° gegen den Uhrzeigersinn"
       }
     }
   },

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 from functools import cache
 from types import MappingProxyType
 from typing import Any
@@ -50,6 +51,7 @@ def async_register_websocket(hass: HomeAssistant) -> None:
         return
     hass.data[DATA_WS] = True
     for command in (
+        ws_original,
         ws_config,
         ws_save_options,
         ws_save_meter,
@@ -306,6 +308,26 @@ def ws_set_reading(
         return
     meter.set_reading(msg["value"])
     connection.send_result(msg["id"], config_payload(hass, entry))
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): f"{DOMAIN}/original", vol.Required("subentry_id"): str}
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_original(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict
+) -> None:
+    """Uncropped last picture of a meter (base64 JPEG) for choosing the crop."""
+    entry = _entry(hass)
+    manager = getattr(entry, "runtime_data", None) if entry else None
+    meter = manager.meters.get(msg["subentry_id"]) if manager else None
+    if meter is None:
+        connection.send_error(msg["id"], "not_found", "meter not found")
+        return
+    content = await hass.async_add_executor_job(meter.load_original)
+    image = base64.b64encode(content).decode() if content else None
+    connection.send_result(msg["id"], {"image": image})
 
 
 @websocket_api.websocket_command(

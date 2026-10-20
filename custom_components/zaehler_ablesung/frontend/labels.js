@@ -38,6 +38,26 @@ export const LABELS = {
     "Verworfene Bilder",
     "Bilder, die vor dem eigentlichen Bild weggeworfen werden. Kameras mit Puffer (ESP32-CAM) liefern sonst ein altes Bild ohne Licht."
    ],
+   "crop_left": [
+    "Links",
+    "Linker Rand des Ausschnitts in Prozent der Bildbreite."
+   ],
+   "crop_top": [
+    "Oben",
+    "Oberer Rand des Ausschnitts in Prozent der Bildhöhe."
+   ],
+   "crop_right": [
+    "Rechts",
+    "Rechter Rand des Ausschnitts in Prozent der Bildbreite."
+   ],
+   "crop_bottom": [
+    "Unten",
+    "Unterer Rand des Ausschnitts in Prozent der Bildhöhe."
+   ],
+   "rotate": [
+    "Drehen",
+    "Dreht das Bild im Uhrzeigersinn, falls die Kamera seitlich oder kopfüber montiert ist (nach dem Zuschneiden)."
+   ],
    "unit": [
     "Einheit",
     "Einheit auf der Anzeige (z. B. MWh, kWh oder m³)."
@@ -88,6 +108,10 @@ export const LABELS = {
     "Kamera und Licht",
     "Kamera am Zähler und das Licht, das für das Bild eingeschaltet wird."
    ],
+   "image_section": [
+    "Bildausschnitt",
+    "Nur dieser Teil des Bildes geht an die KI. Bei Weitwinkel-Kameras auf die Anzeige zuschneiden; im Dashboard lässt sich der Ausschnitt mit der Maus aufziehen."
+   ],
    "display_section": [
     "Anzeige",
     "Was die Anzeige zeigt. Die Hinweise bekommt die KI mit."
@@ -120,6 +144,12 @@ export const LABELS = {
    "gas": "Gaszähler",
    "electricity": "Stromzähler",
    "other": "Anderer Zähler"
+  },
+  "rotate": {
+   "0": "Nicht drehen",
+   "90": "90° im Uhrzeigersinn",
+   "180": "180°",
+   "270": "90° gegen den Uhrzeigersinn"
   },
   "entities": {
    "reading": "Zählerstand",
@@ -173,6 +203,26 @@ export const LABELS = {
     "Discarded pictures",
     "Pictures thrown away before the real one. Cameras with a buffer (ESP32-CAM) otherwise deliver an old picture without light."
    ],
+   "crop_left": [
+    "Left",
+    "Left edge of the crop in percent of the picture width."
+   ],
+   "crop_top": [
+    "Top",
+    "Top edge of the crop in percent of the picture height."
+   ],
+   "crop_right": [
+    "Right",
+    "Right edge of the crop in percent of the picture width."
+   ],
+   "crop_bottom": [
+    "Bottom",
+    "Bottom edge of the crop in percent of the picture height."
+   ],
+   "rotate": [
+    "Rotate",
+    "Turns the picture clockwise if the camera is mounted sideways or upside down (after cropping)."
+   ],
    "unit": [
     "Unit",
     "Unit shown on the display (e.g. MWh, kWh or m³)."
@@ -223,6 +273,10 @@ export const LABELS = {
     "Camera and light",
     "Camera of the meter and the light that is switched on for the picture."
    ],
+   "image_section": [
+    "Picture crop",
+    "Only this part of the picture is sent to the AI. Crop wide-angle cameras to the display; in the dashboard the crop can be drawn with the mouse."
+   ],
    "display_section": [
     "Display",
     "What the display shows. The hints are passed on to the AI."
@@ -255,6 +309,12 @@ export const LABELS = {
    "gas": "Gas meter",
    "electricity": "Electricity meter",
    "other": "Other meter"
+  },
+  "rotate": {
+   "0": "Do not rotate",
+   "90": "90° clockwise",
+   "180": "180°",
+   "270": "90° counterclockwise"
   },
   "entities": {
    "reading": "Meter reading",

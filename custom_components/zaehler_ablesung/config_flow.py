@@ -35,6 +35,10 @@ from .const import (
     CONF_CAMERA,
     CONF_CONDITION,
     CONF_CONFIRMATIONS,
+    CONF_CROP_BOTTOM,
+    CONF_CROP_LEFT,
+    CONF_CROP_RIGHT,
+    CONF_CROP_TOP,
     CONF_DECIMALS,
     CONF_DISCARD,
     CONF_HINTS,
@@ -47,6 +51,7 @@ from .const import (
     CONF_METER_AI_TASK,
     CONF_NAME,
     CONF_NOTIFY,
+    CONF_ROTATE,
     CONF_TYPE,
     CONF_UNIT,
     CONF_WARMUP,
@@ -57,10 +62,12 @@ from .const import (
     SECTION_CAMERA,
     SECTION_CHECKS,
     SECTION_DISPLAY,
+    SECTION_IMAGE,
     SECTION_SCHEDULE,
     SUBENTRY_METER,
     meter_defaults,
 )
+from .logic.image import ROTATIONS
 from .logic.prompt import default_hints
 from .logic.units import METER_TYPES, UNITS
 
@@ -165,6 +172,21 @@ def meter_sections(v: dict[str, Any]) -> dict[str, vol.Schema]:
                 req(CONF_DISCARD): _number(0, 5, 1),
             }
         ),
+        SECTION_IMAGE: vol.Schema(
+            {
+                req(CONF_CROP_LEFT): _number(0, 100, 0.5, "%"),
+                req(CONF_CROP_TOP): _number(0, 100, 0.5, "%"),
+                req(CONF_CROP_RIGHT): _number(0, 100, 0.5, "%"),
+                req(CONF_CROP_BOTTOM): _number(0, 100, 0.5, "%"),
+                req(CONF_ROTATE): SelectSelector(
+                    SelectSelectorConfig(
+                        options=ROTATIONS,
+                        translation_key="rotate",
+                        mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+            }
+        ),
         SECTION_DISPLAY: vol.Schema(
             {
                 req(CONF_UNIT): SelectSelector(
@@ -195,7 +217,7 @@ def meter_sections(v: dict[str, Any]) -> dict[str, vol.Schema]:
     }
 
 
-COLLAPSED = {SECTION_CHECKS}
+COLLAPSED = {SECTION_IMAGE, SECTION_CHECKS}
 
 
 def meter_schema(v: dict[str, Any], with_name: bool) -> vol.Schema:

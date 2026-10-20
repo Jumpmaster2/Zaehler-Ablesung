@@ -72,6 +72,24 @@
                 "discard_frames": "Pictures thrown away before the real one. Cameras with a buffer (ESP32-CAM) otherwise deliver an old picture without light."
               }
             },
+            "image_section": {
+              "name": "Picture crop",
+              "description": "Only this part of the picture is sent to the AI. Crop wide-angle cameras to the display; in the dashboard the crop can be drawn with the mouse.",
+              "data": {
+                "crop_left": "Left",
+                "crop_top": "Top",
+                "crop_right": "Right",
+                "crop_bottom": "Bottom",
+                "rotate": "Rotate"
+              },
+              "data_description": {
+                "crop_left": "Left edge of the crop in percent of the picture width.",
+                "crop_top": "Top edge of the crop in percent of the picture height.",
+                "crop_right": "Right edge of the crop in percent of the picture width.",
+                "crop_bottom": "Bottom edge of the crop in percent of the picture height.",
+                "rotate": "Turns the picture clockwise if the camera is mounted sideways or upside down (after cropping)."
+              }
+            },
             "display_section": {
               "name": "Display",
               "description": "What the display shows. The hints are passed on to the AI.",
@@ -145,6 +163,24 @@
                 "discard_frames": "Pictures thrown away before the real one. Cameras with a buffer (ESP32-CAM) otherwise deliver an old picture without light."
               }
             },
+            "image_section": {
+              "name": "Picture crop",
+              "description": "Only this part of the picture is sent to the AI. Crop wide-angle cameras to the display; in the dashboard the crop can be drawn with the mouse.",
+              "data": {
+                "crop_left": "Left",
+                "crop_top": "Top",
+                "crop_right": "Right",
+                "crop_bottom": "Bottom",
+                "rotate": "Rotate"
+              },
+              "data_description": {
+                "crop_left": "Left edge of the crop in percent of the picture width.",
+                "crop_top": "Top edge of the crop in percent of the picture height.",
+                "crop_right": "Right edge of the crop in percent of the picture width.",
+                "crop_bottom": "Bottom edge of the crop in percent of the picture height.",
+                "rotate": "Turns the picture clockwise if the camera is mounted sideways or upside down (after cropping)."
+              }
+            },
             "display_section": {
               "name": "Display",
               "description": "What the display shows. The hints are passed on to the AI.",
@@ -211,6 +247,14 @@
         "gas": "Gas meter",
         "electricity": "Electricity meter",
         "other": "Other meter"
+      }
+    },
+    "rotate": {
+      "options": {
+        "0": "Do not rotate",
+        "90": "90° clockwise",
+        "180": "180°",
+        "270": "90° counterclockwise"
       }
     }
   },

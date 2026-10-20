@@ -19,6 +19,7 @@ SUBENTRY_METER = "meter"
 # folder below the local media folder: <media>/zaehler_ablesung/<meter id>/
 MEDIA_FOLDER = DOMAIN
 IMAGE_NAME = "letztes.jpg"
+ORIGINAL_NAME = "original.jpg"
 REJECTED_FOLDER = "verworfen"
 REJECTED_KEEP = 20
 
@@ -44,6 +45,11 @@ CONF_LIGHT = "light"
 CONF_BRIGHTNESS = "light_brightness"
 CONF_WARMUP = "warmup"
 CONF_DISCARD = "discard_frames"
+CONF_CROP_LEFT = "crop_left"
+CONF_CROP_TOP = "crop_top"
+CONF_CROP_RIGHT = "crop_right"
+CONF_CROP_BOTTOM = "crop_bottom"
+CONF_ROTATE = "rotate"
 CONF_UNIT = "unit"
 CONF_DECIMALS = "decimals"
 CONF_HINTS = "hints"
@@ -57,16 +63,22 @@ CONF_CONFIRMATIONS = "confirmations"
 CONF_METER_AI_TASK = "meter_ai_task_entity"
 
 SECTION_CAMERA = "camera_section"
+SECTION_IMAGE = "image_section"
 SECTION_DISPLAY = "display_section"
 SECTION_SCHEDULE = "schedule_section"
 SECTION_CHECKS = "checks_section"
-METER_SECTIONS = (SECTION_CAMERA, SECTION_DISPLAY, SECTION_SCHEDULE, SECTION_CHECKS)
+METER_SECTIONS = (SECTION_CAMERA, SECTION_IMAGE, SECTION_DISPLAY, SECTION_SCHEDULE, SECTION_CHECKS)
 
 METER_DEFAULTS = {
     CONF_TYPE: TYPE_HEAT,
     CONF_BRIGHTNESS: 60,
     CONF_WARMUP: 3,
     CONF_DISCARD: 2,
+    CONF_CROP_LEFT: 0,
+    CONF_CROP_TOP: 0,
+    CONF_CROP_RIGHT: 100,
+    CONF_CROP_BOTTOM: 100,
+    CONF_ROTATE: "0",
     CONF_INTERVAL: 60,
     CONF_INTERVAL_OFF: 360,
     CONF_MAX_ATTEMPTS: 4,
