@@ -1,0 +1,273 @@
+// Generated from the translation files by scripts/build_labels.py, do not edit by hand.
+export const LABELS = {
+ "de": {
+  "fields": {
+   "ai_task_entity": [
+    "KI-Aufgabe",
+    "KI-Aufgaben-Entität, die die Bilder liest (z. B. Anthropic, OpenAI, Google oder Ollama mit Bildunterstützung). Ein Zähler kann eine eigene nutzen."
+   ],
+   "notify_rejected": [
+    "Bei verworfenen Ablesungen benachrichtigen",
+    "Zeigt eine Benachrichtigung in Home Assistant, wenn eine Ablesung verworfen oder korrigiert wird."
+   ],
+   "name": [
+    "Name",
+    ""
+   ],
+   "meter_type": [
+    "Zählerart",
+    ""
+   ],
+   "camera": [
+    "Kamera",
+    "Kamera-Entität, die auf die Anzeige zeigt (z. B. ESP32-CAM mit ESPHome)."
+   ],
+   "light": [
+    "Licht",
+    "Optional. Wird für das Bild ein- und danach wieder ausgeschaltet (z. B. die Blitz-LED)."
+   ],
+   "light_brightness": [
+    "Helligkeit",
+    "Helligkeit des Lichts für das Bild. Am besten mit einem Testbild ausprobieren: Spiegelungen machen die Anzeige unlesbar."
+   ],
+   "warmup": [
+    "Vorlaufzeit",
+    "Wartezeit nach dem Einschalten des Lichts, damit die Kamera die Belichtung anpasst."
+   ],
+   "discard_frames": [
+    "Verworfene Bilder",
+    "Bilder, die vor dem eigentlichen Bild weggeworfen werden. Kameras mit Puffer (ESP32-CAM) liefern sonst ein altes Bild ohne Licht."
+   ],
+   "unit": [
+    "Einheit",
+    "Einheit auf der Anzeige (z. B. MWh, kWh oder m³)."
+   ],
+   "decimals": [
+    "Nachkommastellen",
+    "Anzahl der Nachkommastellen auf der Anzeige."
+   ],
+   "hints": [
+    "Hinweise für die KI",
+    "Optional. Was an dieser Anzeige besonders ist, z. B. Linien, die zu keiner Ziffer gehören, oder welche Ziffern nicht mitgelesen werden."
+   ],
+   "interval": [
+    "Intervall",
+    "Zeit zwischen zwei automatischen Ablesungen."
+   ],
+   "condition_entity": [
+    "Bedingung",
+    "Optional. Solange diese Entität 'aus' ist, gilt das zweite Intervall (z. B. ein Heiztag-Sensor)."
+   ],
+   "interval_off": [
+    "Intervall, wenn die Bedingung aus ist",
+    "Nur zusammen mit einer Bedingung."
+   ],
+   "max_rate": [
+    "Größter Anstieg pro Stunde",
+    "In der Einheit des Zählers. Ein größerer Anstieg seit der letzten gültigen Ablesung wird verworfen (z. B. 0,05 MWh = 50 kW)."
+   ],
+   "max_correction": [
+    "Größte Korrektur",
+    "In der Einheit des Zählers. Ein kleinerer Wert als zuvor wird nur übernommen, wenn er höchstens so viel kleiner ist und von weiteren Bildern bestätigt wird."
+   ],
+   "max_attempts": [
+    "Bilder pro Ablesung",
+    "Höchstens so viele Bilder, bis ein Wert zweimal gelesen wurde."
+   ],
+   "confirmations": [
+    "Bestätigungsbilder",
+    "Weitere Bilder, die alle den kleineren Wert zeigen müssen, bevor er als Korrektur übernommen wird."
+   ],
+   "meter_ai_task_entity": [
+    "Eigene KI-Aufgabe",
+    "Optional. Statt der KI-Aufgabe der Integration."
+   ]
+  },
+  "sections": {
+   "camera_section": [
+    "Kamera und Licht",
+    "Kamera am Zähler und das Licht, das für das Bild eingeschaltet wird."
+   ],
+   "display_section": [
+    "Anzeige",
+    "Was die Anzeige zeigt. Die Hinweise bekommt die KI mit."
+   ],
+   "schedule_section": [
+    "Zeitplan",
+    "Wie oft der Zähler automatisch abgelesen wird."
+   ],
+   "checks_section": [
+    "Prüfungen",
+    "Mehrheitsentscheid und Plausibilitätsprüfung einer Ablesung."
+   ]
+  },
+  "errors": {
+   "name_required": "Bitte einen Namen eingeben.",
+   "camera_required": "Bitte eine Kamera auswählen."
+  },
+  "status": {
+   "ok": "Gültig",
+   "corrected": "Korrigiert",
+   "unreadable": "Unlesbar",
+   "error": "Kamera- oder KI-Fehler",
+   "smaller": "Kleiner als zuvor",
+   "too_large": "Anstieg zu groß",
+   "manual": "Von Hand gesetzt"
+  },
+  "types": {
+   "heat": "Wärmezähler",
+   "water": "Wasserzähler",
+   "gas": "Gaszähler",
+   "electricity": "Stromzähler",
+   "other": "Anderer Zähler"
+  },
+  "entities": {
+   "reading": "Zählerstand",
+   "rate": "Mittlerer Verbrauch",
+   "rate_power": "Mittlere Leistung",
+   "rate_flow": "Mittlerer Durchfluss",
+   "last_check": "Letzte Ablesung",
+   "next_check": "Nächste Ablesung",
+   "status": "Status",
+   "last_image": "Letztes Bild",
+   "read_now": "Jetzt ablesen",
+   "test_picture": "Testbild",
+   "automatic": "Automatik"
+  }
+ },
+ "en": {
+  "fields": {
+   "ai_task_entity": [
+    "AI task",
+    "AI task entity that reads the pictures (e.g. Anthropic, OpenAI, Google or Ollama with image support). A meter can use its own one."
+   ],
+   "notify_rejected": [
+    "Notify about rejected readings",
+    "Show a notification in Home Assistant when a reading is rejected or corrected."
+   ],
+   "name": [
+    "Name",
+    ""
+   ],
+   "meter_type": [
+    "Meter type",
+    ""
+   ],
+   "camera": [
+    "Camera",
+    "Camera entity pointed at the display (e.g. an ESP32-CAM with ESPHome)."
+   ],
+   "light": [
+    "Light",
+    "Optional. Switched on for the picture and off again afterwards (e.g. the flash LED)."
+   ],
+   "light_brightness": [
+    "Light brightness",
+    "Brightness of the light for the picture. Try it with a test picture: reflections make the display unreadable."
+   ],
+   "warmup": [
+    "Warm-up time",
+    "Wait after switching the light on, so the camera adjusts its exposure."
+   ],
+   "discard_frames": [
+    "Discarded pictures",
+    "Pictures thrown away before the real one. Cameras with a buffer (ESP32-CAM) otherwise deliver an old picture without light."
+   ],
+   "unit": [
+    "Unit",
+    "Unit shown on the display (e.g. MWh, kWh or m³)."
+   ],
+   "decimals": [
+    "Decimals",
+    "Number of decimals shown on the display."
+   ],
+   "hints": [
+    "Hints for the AI",
+    "Optional. What is special about this display, e.g. lines that are not part of a digit, or which digits to ignore."
+   ],
+   "interval": [
+    "Interval",
+    "Time between two automatic readings."
+   ],
+   "condition_entity": [
+    "Condition",
+    "Optional. While this entity is 'off', the second interval applies (e.g. a heating day sensor)."
+   ],
+   "interval_off": [
+    "Interval while the condition is off",
+    "Only used together with a condition."
+   ],
+   "max_rate": [
+    "Largest increase per hour",
+    "In the meter unit. A larger increase since the last valid reading is rejected (e.g. 0.05 MWh = 50 kW)."
+   ],
+   "max_correction": [
+    "Largest correction",
+    "In the meter unit. A smaller value than before is only taken when it is at most this much lower and confirmed by further pictures."
+   ],
+   "max_attempts": [
+    "Pictures per reading",
+    "Most pictures until a value has been read twice."
+   ],
+   "confirmations": [
+    "Confirmation pictures",
+    "Further pictures that must all show a smaller value before it is taken as a correction."
+   ],
+   "meter_ai_task_entity": [
+    "Own AI task",
+    "Optional. Instead of the AI task of the integration."
+   ]
+  },
+  "sections": {
+   "camera_section": [
+    "Camera and light",
+    "Camera of the meter and the light that is switched on for the picture."
+   ],
+   "display_section": [
+    "Display",
+    "What the display shows. The hints are passed on to the AI."
+   ],
+   "schedule_section": [
+    "Schedule",
+    "How often the meter is read automatically."
+   ],
+   "checks_section": [
+    "Checks",
+    "Majority vote and plausibility check of a reading."
+   ]
+  },
+  "errors": {
+   "name_required": "Please enter a name.",
+   "camera_required": "Please select a camera."
+  },
+  "status": {
+   "ok": "Valid",
+   "corrected": "Corrected",
+   "unreadable": "Unreadable",
+   "error": "Camera or AI error",
+   "smaller": "Smaller than before",
+   "too_large": "Increase too large",
+   "manual": "Set by hand"
+  },
+  "types": {
+   "heat": "Heat meter",
+   "water": "Water meter",
+   "gas": "Gas meter",
+   "electricity": "Electricity meter",
+   "other": "Other meter"
+  },
+  "entities": {
+   "reading": "Meter reading",
+   "rate": "Mean consumption",
+   "rate_power": "Mean power",
+   "rate_flow": "Mean flow",
+   "last_check": "Last reading",
+   "next_check": "Next reading",
+   "status": "Status",
+   "last_image": "Last picture",
+   "read_now": "Read now",
+   "test_picture": "Test picture",
+   "automatic": "Automatic"
+  }
+ }
+};

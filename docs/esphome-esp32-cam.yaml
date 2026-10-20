@@ -1,0 +1,94 @@
+# Example: AI-Thinker ESP32-CAM (OV2640) for Zähler-Ablesung
+# Copy into ESPHome, adjust name and secrets, flash once via USB, then OTA.
+substitutions:
+  name: meter-cam
+  # picture orientation if the display appears mirrored or upside down
+  vertical_flip: "false"
+  horizontal_mirror: "false"
+
+esphome:
+  name: ${name}
+  friendly_name: ${name}
+
+esp32:
+  board: esp32cam
+  framework:
+    type: esp-idf
+
+psram:
+  mode: quad
+  speed: 80MHz
+
+logger:
+api:
+  encryption:
+    key: !secret meter_cam_api_key
+ota:
+  - platform: esphome
+    password: !secret meter_cam_ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: none
+  ap:
+    ssid: ${name} Fallback
+    password: !secret meter_cam_ap_password
+captive_portal:
+
+i2c:
+  - id: camera_i2c
+    sda: GPIO26
+    scl: GPIO27
+    scan: false
+
+esp32_camera:
+  name: "Camera"
+  external_clock:
+    pin: GPIO0
+    # 8 MHz (minimum) instead of 20 MHz: much less interference with the WiFi antenna
+    frequency: 8MHz
+  i2c_id: camera_i2c
+  data_pins: [GPIO5, GPIO18, GPIO19, GPIO21, GPIO36, GPIO39, GPIO34, GPIO35]
+  vsync_pin: GPIO25
+  href_pin: GPIO23
+  pixel_clock_pin: GPIO22
+  power_down_pin: GPIO32
+  resolution: 1024x768
+  jpeg_quality: 12
+  # no continuous streaming: pictures only on request
+  max_framerate: 2 fps
+  idle_framerate: 0 fps
+  # 2 buffers: a new picture instead of an old one from the buffer
+  frame_buffer_count: 2
+  vertical_flip: ${vertical_flip}
+  horizontal_mirror: ${horizontal_mirror}
+
+output:
+  # the camera clock uses the LEDC timer of channels 0/1, so channel 2 (own timer)
+  - platform: ledc
+    id: flash_led_out
+    pin: GPIO4
+    channel: 2
+    frequency: 5000Hz
+    zero_means_zero: true
+    # the LED is very bright: 100 % in Home Assistant = 30 % duty cycle
+    min_power: 0.0
+    max_power: 0.3
+
+light:
+  - platform: monochromatic
+    name: "Flash LED"
+    output: flash_led_out
+    restore_mode: ALWAYS_OFF
+    gamma_correct: 1.0
+    default_transition_length: 0s
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi signal"
+    update_interval: 60s
+
+button:
+  - platform: restart
+    name: "Restart"

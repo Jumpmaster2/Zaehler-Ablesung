@@ -1,0 +1,25 @@
+read:
+  fields:
+    entity_id:
+      required: true
+      selector:
+        entity:
+          integration: zaehler_ablesung
+          multiple: true
+set_reading:
+  fields:
+    entity_id:
+      required: true
+      selector:
+        entity:
+          integration: zaehler_ablesung
+          domain: sensor
+          multiple: true
+    value:
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 100000000
+          step: any
+          mode: box

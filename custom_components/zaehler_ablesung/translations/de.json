@@ -1,0 +1,306 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Zähler-Ablesung",
+        "description": "Liest Zähler mit einer Kamera und einer KI-Aufgabe ab. Die Zähler werden danach auf der Integrationsseite oder im Seitenleisten-Panel angelegt.",
+        "data": {
+          "ai_task_entity": "KI-Aufgabe",
+          "notify_rejected": "Bei verworfenen Ablesungen benachrichtigen"
+        },
+        "data_description": {
+          "ai_task_entity": "KI-Aufgaben-Entität, die die Bilder liest (z. B. Anthropic, OpenAI, Google oder Ollama mit Bildunterstützung). Ein Zähler kann eine eigene nutzen.",
+          "notify_rejected": "Zeigt eine Benachrichtigung in Home Assistant, wenn eine Ablesung verworfen oder korrigiert wird."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Zähler-Ablesung ist bereits eingerichtet. Weitere Zähler werden als Einträge der Integration angelegt.",
+      "already_configured": "Zähler-Ablesung ist bereits eingerichtet. Weitere Zähler werden als Einträge der Integration angelegt."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Einstellungen",
+        "data": {
+          "ai_task_entity": "KI-Aufgabe",
+          "notify_rejected": "Bei verworfenen Ablesungen benachrichtigen"
+        },
+        "data_description": {
+          "ai_task_entity": "KI-Aufgaben-Entität, die die Bilder liest (z. B. Anthropic, OpenAI, Google oder Ollama mit Bildunterstützung). Ein Zähler kann eine eigene nutzen.",
+          "notify_rejected": "Zeigt eine Benachrichtigung in Home Assistant, wenn eine Ablesung verworfen oder korrigiert wird."
+        }
+      }
+    }
+  },
+  "config_subentries": {
+    "meter": {
+      "entry_type": "Zähler",
+      "initiate_flow": {
+        "user": "Zähler hinzufügen",
+        "reconfigure": "Zähler ändern"
+      },
+      "step": {
+        "user": {
+          "title": "Neuer Zähler",
+          "description": "Name und Art. Die Art setzt im nächsten Schritt passende Startwerte.",
+          "data": {
+            "name": "Name",
+            "meter_type": "Zählerart"
+          }
+        },
+        "details": {
+          "title": "{name}",
+          "description": "Kamera, Anzeige und Zeitplan des Zählers.",
+          "sections": {
+            "camera_section": {
+              "name": "Kamera und Licht",
+              "description": "Kamera am Zähler und das Licht, das für das Bild eingeschaltet wird.",
+              "data": {
+                "camera": "Kamera",
+                "light": "Licht",
+                "light_brightness": "Helligkeit",
+                "warmup": "Vorlaufzeit",
+                "discard_frames": "Verworfene Bilder"
+              },
+              "data_description": {
+                "camera": "Kamera-Entität, die auf die Anzeige zeigt (z. B. ESP32-CAM mit ESPHome).",
+                "light": "Optional. Wird für das Bild ein- und danach wieder ausgeschaltet (z. B. die Blitz-LED).",
+                "light_brightness": "Helligkeit des Lichts für das Bild. Am besten mit einem Testbild ausprobieren: Spiegelungen machen die Anzeige unlesbar.",
+                "warmup": "Wartezeit nach dem Einschalten des Lichts, damit die Kamera die Belichtung anpasst.",
+                "discard_frames": "Bilder, die vor dem eigentlichen Bild weggeworfen werden. Kameras mit Puffer (ESP32-CAM) liefern sonst ein altes Bild ohne Licht."
+              }
+            },
+            "display_section": {
+              "name": "Anzeige",
+              "description": "Was die Anzeige zeigt. Die Hinweise bekommt die KI mit.",
+              "data": {
+                "unit": "Einheit",
+                "decimals": "Nachkommastellen",
+                "hints": "Hinweise für die KI"
+              },
+              "data_description": {
+                "unit": "Einheit auf der Anzeige (z. B. MWh, kWh oder m³).",
+                "decimals": "Anzahl der Nachkommastellen auf der Anzeige.",
+                "hints": "Optional. Was an dieser Anzeige besonders ist, z. B. Linien, die zu keiner Ziffer gehören, oder welche Ziffern nicht mitgelesen werden."
+              }
+            },
+            "schedule_section": {
+              "name": "Zeitplan",
+              "description": "Wie oft der Zähler automatisch abgelesen wird.",
+              "data": {
+                "interval": "Intervall",
+                "condition_entity": "Bedingung",
+                "interval_off": "Intervall, wenn die Bedingung aus ist"
+              },
+              "data_description": {
+                "interval": "Zeit zwischen zwei automatischen Ablesungen.",
+                "condition_entity": "Optional. Solange diese Entität 'aus' ist, gilt das zweite Intervall (z. B. ein Heiztag-Sensor).",
+                "interval_off": "Nur zusammen mit einer Bedingung."
+              }
+            },
+            "checks_section": {
+              "name": "Prüfungen",
+              "description": "Mehrheitsentscheid und Plausibilitätsprüfung einer Ablesung.",
+              "data": {
+                "max_rate": "Größter Anstieg pro Stunde",
+                "max_correction": "Größte Korrektur",
+                "max_attempts": "Bilder pro Ablesung",
+                "confirmations": "Bestätigungsbilder",
+                "meter_ai_task_entity": "Eigene KI-Aufgabe"
+              },
+              "data_description": {
+                "max_rate": "In der Einheit des Zählers. Ein größerer Anstieg seit der letzten gültigen Ablesung wird verworfen (z. B. 0,05 MWh = 50 kW).",
+                "max_correction": "In der Einheit des Zählers. Ein kleinerer Wert als zuvor wird nur übernommen, wenn er höchstens so viel kleiner ist und von weiteren Bildern bestätigt wird.",
+                "max_attempts": "Höchstens so viele Bilder, bis ein Wert zweimal gelesen wurde.",
+                "confirmations": "Weitere Bilder, die alle den kleineren Wert zeigen müssen, bevor er als Korrektur übernommen wird.",
+                "meter_ai_task_entity": "Optional. Statt der KI-Aufgabe der Integration."
+              }
+            }
+          }
+        },
+        "reconfigure": {
+          "title": "Zähler ändern",
+          "data": {
+            "name": "Name",
+            "meter_type": "Zählerart"
+          },
+          "sections": {
+            "camera_section": {
+              "name": "Kamera und Licht",
+              "description": "Kamera am Zähler und das Licht, das für das Bild eingeschaltet wird.",
+              "data": {
+                "camera": "Kamera",
+                "light": "Licht",
+                "light_brightness": "Helligkeit",
+                "warmup": "Vorlaufzeit",
+                "discard_frames": "Verworfene Bilder"
+              },
+              "data_description": {
+                "camera": "Kamera-Entität, die auf die Anzeige zeigt (z. B. ESP32-CAM mit ESPHome).",
+                "light": "Optional. Wird für das Bild ein- und danach wieder ausgeschaltet (z. B. die Blitz-LED).",
+                "light_brightness": "Helligkeit des Lichts für das Bild. Am besten mit einem Testbild ausprobieren: Spiegelungen machen die Anzeige unlesbar.",
+                "warmup": "Wartezeit nach dem Einschalten des Lichts, damit die Kamera die Belichtung anpasst.",
+                "discard_frames": "Bilder, die vor dem eigentlichen Bild weggeworfen werden. Kameras mit Puffer (ESP32-CAM) liefern sonst ein altes Bild ohne Licht."
+              }
+            },
+            "display_section": {
+              "name": "Anzeige",
+              "description": "Was die Anzeige zeigt. Die Hinweise bekommt die KI mit.",
+              "data": {
+                "unit": "Einheit",
+                "decimals": "Nachkommastellen",
+                "hints": "Hinweise für die KI"
+              },
+              "data_description": {
+                "unit": "Einheit auf der Anzeige (z. B. MWh, kWh oder m³).",
+                "decimals": "Anzahl der Nachkommastellen auf der Anzeige.",
+                "hints": "Optional. Was an dieser Anzeige besonders ist, z. B. Linien, die zu keiner Ziffer gehören, oder welche Ziffern nicht mitgelesen werden."
+              }
+            },
+            "schedule_section": {
+              "name": "Zeitplan",
+              "description": "Wie oft der Zähler automatisch abgelesen wird.",
+              "data": {
+                "interval": "Intervall",
+                "condition_entity": "Bedingung",
+                "interval_off": "Intervall, wenn die Bedingung aus ist"
+              },
+              "data_description": {
+                "interval": "Zeit zwischen zwei automatischen Ablesungen.",
+                "condition_entity": "Optional. Solange diese Entität 'aus' ist, gilt das zweite Intervall (z. B. ein Heiztag-Sensor).",
+                "interval_off": "Nur zusammen mit einer Bedingung."
+              }
+            },
+            "checks_section": {
+              "name": "Prüfungen",
+              "description": "Mehrheitsentscheid und Plausibilitätsprüfung einer Ablesung.",
+              "data": {
+                "max_rate": "Größter Anstieg pro Stunde",
+                "max_correction": "Größte Korrektur",
+                "max_attempts": "Bilder pro Ablesung",
+                "confirmations": "Bestätigungsbilder",
+                "meter_ai_task_entity": "Eigene KI-Aufgabe"
+              },
+              "data_description": {
+                "max_rate": "In der Einheit des Zählers. Ein größerer Anstieg seit der letzten gültigen Ablesung wird verworfen (z. B. 0,05 MWh = 50 kW).",
+                "max_correction": "In der Einheit des Zählers. Ein kleinerer Wert als zuvor wird nur übernommen, wenn er höchstens so viel kleiner ist und von weiteren Bildern bestätigt wird.",
+                "max_attempts": "Höchstens so viele Bilder, bis ein Wert zweimal gelesen wurde.",
+                "confirmations": "Weitere Bilder, die alle den kleineren Wert zeigen müssen, bevor er als Korrektur übernommen wird.",
+                "meter_ai_task_entity": "Optional. Statt der KI-Aufgabe der Integration."
+              }
+            }
+          }
+        }
+      },
+      "error": {
+        "name_required": "Bitte einen Namen eingeben.",
+        "camera_required": "Bitte eine Kamera auswählen."
+      },
+      "abort": {
+        "reconfigure_successful": "Der Zähler wurde geändert."
+      }
+    }
+  },
+  "selector": {
+    "meter_type": {
+      "options": {
+        "heat": "Wärmezähler",
+        "water": "Wasserzähler",
+        "gas": "Gaszähler",
+        "electricity": "Stromzähler",
+        "other": "Anderer Zähler"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "reading": {
+        "name": "Zählerstand"
+      },
+      "rate": {
+        "name": "Mittlerer Verbrauch"
+      },
+      "rate_power": {
+        "name": "Mittlere Leistung"
+      },
+      "rate_flow": {
+        "name": "Mittlerer Durchfluss"
+      },
+      "last_check": {
+        "name": "Letzte Ablesung"
+      },
+      "next_check": {
+        "name": "Nächste Ablesung"
+      },
+      "status": {
+        "name": "Status",
+        "state": {
+          "ok": "Gültig",
+          "corrected": "Korrigiert",
+          "unreadable": "Unlesbar",
+          "error": "Kamera- oder KI-Fehler",
+          "smaller": "Kleiner als zuvor",
+          "too_large": "Anstieg zu groß",
+          "manual": "Von Hand gesetzt"
+        }
+      }
+    },
+    "camera": {
+      "last_image": {
+        "name": "Letztes Bild"
+      }
+    },
+    "button": {
+      "read_now": {
+        "name": "Jetzt ablesen"
+      },
+      "test_picture": {
+        "name": "Testbild"
+      }
+    },
+    "switch": {
+      "automatic": {
+        "name": "Automatik"
+      }
+    }
+  },
+  "exceptions": {
+    "not_loaded": {
+      "message": "Zähler-Ablesung ist nicht geladen."
+    },
+    "no_meter": {
+      "message": "{entity_id} gehört zu keinem Zähler der Zähler-Ablesung."
+    },
+    "negative": {
+      "message": "Der Zählerstand darf nicht negativ sein."
+    }
+  },
+  "services": {
+    "read": {
+      "name": "Zähler ablesen",
+      "description": "Liest die Zähler der angegebenen Entitäten jetzt ab (mit Mehrheitsentscheid und Plausibilitätsprüfung).",
+      "fields": {
+        "entity_id": {
+          "name": "Entitäten",
+          "description": "Eine beliebige Entität des Zählers (z. B. sein Zählerstand)."
+        }
+      }
+    },
+    "set_reading": {
+      "name": "Zählerstand setzen",
+      "description": "Setzt den Zählerstand von Hand, z. B. nach einer Fehllesung. Die nächsten Ablesungen werden gegen diesen Wert geprüft.",
+      "fields": {
+        "entity_id": {
+          "name": "Entitäten",
+          "description": "Eine beliebige Entität des Zählers (z. B. sein Zählerstand)."
+        },
+        "value": {
+          "name": "Wert",
+          "description": "Neuer Zählerstand in der Einheit des Zählers."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "entity": {
+    "sensor": {
+      "rate": { "default": "mdi:speedometer" },
+      "rate_power": { "default": "mdi:fire" },
+      "rate_flow": { "default": "mdi:water-pump" },
+      "last_check": { "default": "mdi:history" },
+      "next_check": { "default": "mdi:clock-outline" }
+    },
+    "camera": {
+      "last_image": { "default": "mdi:image-outline" }
+    }
+  },
+  "services": {
+    "read": { "service": "mdi:camera-iris" },
+    "set_reading": { "service": "mdi:pencil-outline" }
+  }
+}

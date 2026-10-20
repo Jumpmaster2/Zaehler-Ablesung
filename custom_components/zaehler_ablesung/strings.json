@@ -1,0 +1,306 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Zähler-Ablesung",
+        "description": "Reads meters with a camera and an AI task. Add the meters afterwards on the integration page or in the sidebar panel.",
+        "data": {
+          "ai_task_entity": "AI task",
+          "notify_rejected": "Notify about rejected readings"
+        },
+        "data_description": {
+          "ai_task_entity": "AI task entity that reads the pictures (e.g. Anthropic, OpenAI, Google or Ollama with image support). A meter can use its own one.",
+          "notify_rejected": "Show a notification in Home Assistant when a reading is rejected or corrected."
+        }
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Zähler-Ablesung is already set up. Add more meters as entries of the integration.",
+      "already_configured": "Zähler-Ablesung is already set up. Add more meters as entries of the integration."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Settings",
+        "data": {
+          "ai_task_entity": "AI task",
+          "notify_rejected": "Notify about rejected readings"
+        },
+        "data_description": {
+          "ai_task_entity": "AI task entity that reads the pictures (e.g. Anthropic, OpenAI, Google or Ollama with image support). A meter can use its own one.",
+          "notify_rejected": "Show a notification in Home Assistant when a reading is rejected or corrected."
+        }
+      }
+    }
+  },
+  "config_subentries": {
+    "meter": {
+      "entry_type": "Meter",
+      "initiate_flow": {
+        "user": "Add meter",
+        "reconfigure": "Change meter"
+      },
+      "step": {
+        "user": {
+          "title": "New meter",
+          "description": "Name and type. The type sets suitable defaults in the next step.",
+          "data": {
+            "name": "Name",
+            "meter_type": "Meter type"
+          }
+        },
+        "details": {
+          "title": "{name}",
+          "description": "Camera, display and schedule of the meter.",
+          "sections": {
+            "camera_section": {
+              "name": "Camera and light",
+              "description": "Camera of the meter and the light that is switched on for the picture.",
+              "data": {
+                "camera": "Camera",
+                "light": "Light",
+                "light_brightness": "Light brightness",
+                "warmup": "Warm-up time",
+                "discard_frames": "Discarded pictures"
+              },
+              "data_description": {
+                "camera": "Camera entity pointed at the display (e.g. an ESP32-CAM with ESPHome).",
+                "light": "Optional. Switched on for the picture and off again afterwards (e.g. the flash LED).",
+                "light_brightness": "Brightness of the light for the picture. Try it with a test picture: reflections make the display unreadable.",
+                "warmup": "Wait after switching the light on, so the camera adjusts its exposure.",
+                "discard_frames": "Pictures thrown away before the real one. Cameras with a buffer (ESP32-CAM) otherwise deliver an old picture without light."
+              }
+            },
+            "display_section": {
+              "name": "Display",
+              "description": "What the display shows. The hints are passed on to the AI.",
+              "data": {
+                "unit": "Unit",
+                "decimals": "Decimals",
+                "hints": "Hints for the AI"
+              },
+              "data_description": {
+                "unit": "Unit shown on the display (e.g. MWh, kWh or m³).",
+                "decimals": "Number of decimals shown on the display.",
+                "hints": "Optional. What is special about this display, e.g. lines that are not part of a digit, or which digits to ignore."
+              }
+            },
+            "schedule_section": {
+              "name": "Schedule",
+              "description": "How often the meter is read automatically.",
+              "data": {
+                "interval": "Interval",
+                "condition_entity": "Condition",
+                "interval_off": "Interval while the condition is off"
+              },
+              "data_description": {
+                "interval": "Time between two automatic readings.",
+                "condition_entity": "Optional. While this entity is 'off', the second interval applies (e.g. a heating day sensor).",
+                "interval_off": "Only used together with a condition."
+              }
+            },
+            "checks_section": {
+              "name": "Checks",
+              "description": "Majority vote and plausibility check of a reading.",
+              "data": {
+                "max_rate": "Largest increase per hour",
+                "max_correction": "Largest correction",
+                "max_attempts": "Pictures per reading",
+                "confirmations": "Confirmation pictures",
+                "meter_ai_task_entity": "Own AI task"
+              },
+              "data_description": {
+                "max_rate": "In the meter unit. A larger increase since the last valid reading is rejected (e.g. 0.05 MWh = 50 kW).",
+                "max_correction": "In the meter unit. A smaller value than before is only taken when it is at most this much lower and confirmed by further pictures.",
+                "max_attempts": "Most pictures until a value has been read twice.",
+                "confirmations": "Further pictures that must all show a smaller value before it is taken as a correction.",
+                "meter_ai_task_entity": "Optional. Instead of the AI task of the integration."
+              }
+            }
+          }
+        },
+        "reconfigure": {
+          "title": "Change meter",
+          "data": {
+            "name": "Name",
+            "meter_type": "Meter type"
+          },
+          "sections": {
+            "camera_section": {
+              "name": "Camera and light",
+              "description": "Camera of the meter and the light that is switched on for the picture.",
+              "data": {
+                "camera": "Camera",
+                "light": "Light",
+                "light_brightness": "Light brightness",
+                "warmup": "Warm-up time",
+                "discard_frames": "Discarded pictures"
+              },
+              "data_description": {
+                "camera": "Camera entity pointed at the display (e.g. an ESP32-CAM with ESPHome).",
+                "light": "Optional. Switched on for the picture and off again afterwards (e.g. the flash LED).",
+                "light_brightness": "Brightness of the light for the picture. Try it with a test picture: reflections make the display unreadable.",
+                "warmup": "Wait after switching the light on, so the camera adjusts its exposure.",
+                "discard_frames": "Pictures thrown away before the real one. Cameras with a buffer (ESP32-CAM) otherwise deliver an old picture without light."
+              }
+            },
+            "display_section": {
+              "name": "Display",
+              "description": "What the display shows. The hints are passed on to the AI.",
+              "data": {
+                "unit": "Unit",
+                "decimals": "Decimals",
+                "hints": "Hints for the AI"
+              },
+              "data_description": {
+                "unit": "Unit shown on the display (e.g. MWh, kWh or m³).",
+                "decimals": "Number of decimals shown on the display.",
+                "hints": "Optional. What is special about this display, e.g. lines that are not part of a digit, or which digits to ignore."
+              }
+            },
+            "schedule_section": {
+              "name": "Schedule",
+              "description": "How often the meter is read automatically.",
+              "data": {
+                "interval": "Interval",
+                "condition_entity": "Condition",
+                "interval_off": "Interval while the condition is off"
+              },
+              "data_description": {
+                "interval": "Time between two automatic readings.",
+                "condition_entity": "Optional. While this entity is 'off', the second interval applies (e.g. a heating day sensor).",
+                "interval_off": "Only used together with a condition."
+              }
+            },
+            "checks_section": {
+              "name": "Checks",
+              "description": "Majority vote and plausibility check of a reading.",
+              "data": {
+                "max_rate": "Largest increase per hour",
+                "max_correction": "Largest correction",
+                "max_attempts": "Pictures per reading",
+                "confirmations": "Confirmation pictures",
+                "meter_ai_task_entity": "Own AI task"
+              },
+              "data_description": {
+                "max_rate": "In the meter unit. A larger increase since the last valid reading is rejected (e.g. 0.05 MWh = 50 kW).",
+                "max_correction": "In the meter unit. A smaller value than before is only taken when it is at most this much lower and confirmed by further pictures.",
+                "max_attempts": "Most pictures until a value has been read twice.",
+                "confirmations": "Further pictures that must all show a smaller value before it is taken as a correction.",
+                "meter_ai_task_entity": "Optional. Instead of the AI task of the integration."
+              }
+            }
+          }
+        }
+      },
+      "error": {
+        "name_required": "Please enter a name.",
+        "camera_required": "Please select a camera."
+      },
+      "abort": {
+        "reconfigure_successful": "The meter was changed."
+      }
+    }
+  },
+  "selector": {
+    "meter_type": {
+      "options": {
+        "heat": "Heat meter",
+        "water": "Water meter",
+        "gas": "Gas meter",
+        "electricity": "Electricity meter",
+        "other": "Other meter"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "reading": {
+        "name": "Meter reading"
+      },
+      "rate": {
+        "name": "Mean consumption"
+      },
+      "rate_power": {
+        "name": "Mean power"
+      },
+      "rate_flow": {
+        "name": "Mean flow"
+      },
+      "last_check": {
+        "name": "Last reading"
+      },
+      "next_check": {
+        "name": "Next reading"
+      },
+      "status": {
+        "name": "Status",
+        "state": {
+          "ok": "Valid",
+          "corrected": "Corrected",
+          "unreadable": "Unreadable",
+          "error": "Camera or AI error",
+          "smaller": "Smaller than before",
+          "too_large": "Increase too large",
+          "manual": "Set by hand"
+        }
+      }
+    },
+    "camera": {
+      "last_image": {
+        "name": "Last picture"
+      }
+    },
+    "button": {
+      "read_now": {
+        "name": "Read now"
+      },
+      "test_picture": {
+        "name": "Test picture"
+      }
+    },
+    "switch": {
+      "automatic": {
+        "name": "Automatic"
+      }
+    }
+  },
+  "exceptions": {
+    "not_loaded": {
+      "message": "Zähler-Ablesung is not loaded."
+    },
+    "no_meter": {
+      "message": "{entity_id} does not belong to a meter of Zähler-Ablesung."
+    },
+    "negative": {
+      "message": "The meter reading must not be negative."
+    }
+  },
+  "services": {
+    "read": {
+      "name": "Read meter",
+      "description": "Reads the meters of the given entities now (with majority vote and plausibility check).",
+      "fields": {
+        "entity_id": {
+          "name": "Entities",
+          "description": "Any entity of the meter (e.g. its meter reading)."
+        }
+      }
+    },
+    "set_reading": {
+      "name": "Set meter reading",
+      "description": "Sets the meter reading by hand, e.g. after a wrong reading. The next readings are checked against this value.",
+      "fields": {
+        "entity_id": {
+          "name": "Entities",
+          "description": "Any entity of the meter (e.g. its meter reading)."
+        },
+        "value": {
+          "name": "Value",
+          "description": "New meter reading in the unit of the meter."
+        }
+      }
+    }
+  }
+}

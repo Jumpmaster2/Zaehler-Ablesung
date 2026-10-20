@@ -1,0 +1,15 @@
+{
+  "domain": "zaehler_ablesung",
+  "name": "Zähler-Ablesung",
+  "after_dependencies": ["ai_task", "camera", "frontend", "http", "light", "panel_custom", "websocket_api"],
+  "codeowners": ["@Jumpmaster2"],
+  "config_flow": true,
+  "dependencies": ["media_source"],
+  "documentation": "https://github.com/Jumpmaster2/Zaehler-Ablesung",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/Jumpmaster2/Zaehler-Ablesung/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.1.0"
+}
