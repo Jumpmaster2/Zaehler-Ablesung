@@ -646,7 +646,7 @@ class ZaehlerAblesungPanel extends HTMLElement {
     if (e && time && time !== e.originalTime) this._loadOriginal();
   }
 
-  async _loadOriginal() {
+  async _loadOriginal(attempt = 0) {
     const e = this._edit;
     if (!e?.id) return;
     const meter = this._cfg.meters.find((m) => m.id === e.id);
@@ -661,6 +661,11 @@ class ZaehlerAblesungPanel extends HTMLElement {
       if (box && !e.live) box.outerHTML = this._cropHtml();
       this._turnPreview();
     } catch (err) {
+      // right after saving the integration is reloaded and does not know the meter for a moment
+      if (err?.code === "not_found" && attempt < 10) {
+        setTimeout(() => this._edit === e && this._loadOriginal(attempt + 1), 1000);
+        return;
+      }
       this._toast(err.message || String(err), true);
     }
   }
