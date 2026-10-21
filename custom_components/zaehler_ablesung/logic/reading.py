@@ -39,6 +39,17 @@ MIN_HOURS = 0.5
 MIN_RATE_HOURS = 0.05
 
 _NUMBER = re.compile(r"^\d+(\.\d+)?$")
+# a number with a label before it ("Zählerstand: ...") or a unit after it
+_LABELLED = re.compile(
+    r"^(?:[^\d:]*:\s*)?(\d+(?:[.,]\d+)?)\s*(?:m³|m3|kwh|mwh|wh|gj|mj|l|liter|litre)?\.?$",
+    re.IGNORECASE,
+)
+
+# after a failed reading (camera, AI or unreadable) the next try comes sooner
+RETRY_MINUTES = 15.0
+# failed readings in a row before a notification is sent
+NOTIFY_AFTER_FAILURES = 3
+FAILED_STATUSES = (STATUS_ERROR, STATUS_UNREADABLE)
 
 
 def normalize(answer: object) -> str:
@@ -48,6 +59,8 @@ def normalize(answer: object) -> str:
     text = str(answer).strip().strip("`").strip().replace(",", ".")
     if _NUMBER.match(text):
         return text
+    if match := _LABELLED.match(text):
+        return match.group(1).replace(",", ".")
     if text.lower().rstrip(".") in ("unlesbar", "unreadable"):
         return UNREADABLE
     return UNREADABLE if text else ERROR
@@ -110,6 +123,15 @@ def needs_confirmation(
     )
 
 
+def first_needs_confirmation(status: str, value: float | None, previous: float | None) -> bool:
+    """The very first value has nothing to be checked against: more pictures confirm it.
+
+    A wrong first value (e.g. the decimal point missed) would make every later correct
+    reading look smaller and be rejected.
+    """
+    return status == STATUS_OK and value is not None and previous is None
+
+
 def confirmed(extra_readings: list[str], value: float) -> bool:
     """All extra pictures show the agreed value."""
     return bool(extra_readings) and all(is_number(r) and float(r) == value for r in extra_readings)
@@ -143,6 +165,22 @@ def rate(
     ):
         return RateResult(value=round((value - previous) * factor / hours_exact, 3))
     return RateResult(keep=True)
+
+
+def effective_interval(interval_minutes: float, status: str | None, failures: int) -> float:
+    """Interval until the next reading: shorter after a failed one."""
+    if failures and status in FAILED_STATUSES:
+        return min(interval_minutes, RETRY_MINUTES)
+    return interval_minutes
+
+
+def should_notify(status: str, failures: int) -> bool:
+    """Rejected values are reported at once, failures only when they repeat."""
+    if status == STATUS_OK:
+        return False
+    if status in FAILED_STATUSES:
+        return failures >= NOTIFY_AFTER_FAILURES
+    return True
 
 
 def interval_due(

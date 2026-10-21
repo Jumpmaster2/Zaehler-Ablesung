@@ -25,6 +25,7 @@ from .const import (
     METER_SECTIONS,
     SUBENTRY_METER,
     meter_defaults,
+    meter_values,
 )
 from .logic.prompt import build_instructions, default_hints
 from .logic.units import METER_TYPES, rate_unit
@@ -52,6 +53,7 @@ def async_register_websocket(hass: HomeAssistant) -> None:
     hass.data[DATA_WS] = True
     for command in (
         ws_original,
+        ws_rejected,
         ws_config,
         ws_save_options,
         ws_save_meter,
@@ -170,7 +172,7 @@ def config_payload(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
             if (entity_id := registry.async_get_entity_id(domain, DOMAIN, f"{sub_id}_{key}"))
         }
         meter = manager.meters.get(sub_id) if manager else None
-        data = {**meter_defaults(sub.data.get(CONF_TYPE, "heat")), **sub.data}
+        data = meter_values(sub.data)
         meters.append(
             {
                 "id": sub_id,
@@ -328,6 +330,27 @@ async def ws_original(
     content = await hass.async_add_executor_job(meter.load_original)
     image = base64.b64encode(content).decode() if content else None
     connection.send_result(msg["id"], {"image": image})
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): f"{DOMAIN}/rejected", vol.Required("subentry_id"): str}
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_rejected(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict
+) -> None:
+    """Pictures of the last rejected readings of a meter (small base64 JPEGs)."""
+    entry = _entry(hass)
+    manager = getattr(entry, "runtime_data", None) if entry else None
+    meter = manager.meters.get(msg["subentry_id"]) if manager else None
+    if meter is None:
+        connection.send_error(msg["id"], "not_found", "meter not found")
+        return
+    pictures = await hass.async_add_executor_job(meter.load_rejected)
+    for picture in pictures:
+        picture["image"] = base64.b64encode(picture["image"]).decode()
+    connection.send_result(msg["id"], {"pictures": pictures})
 
 
 @websocket_api.websocket_command(

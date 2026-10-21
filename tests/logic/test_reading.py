@@ -15,6 +15,11 @@ from logic import reading as rd
         ("unlesbar", rd.UNREADABLE),
         ("Unreadable.", rd.UNREADABLE),
         ("about 1.26 MWh", rd.UNREADABLE),
+        ("1.261 MWh", "1.261"),
+        ("1234,5 m³", "1234.5"),
+        ("Zählerstand: 1234.567", "1234.567"),
+        ("1.234,567", rd.UNREADABLE),
+        ("1.2 oder 1.3", rd.UNREADABLE),
         ("", rd.ERROR),
         (None, rd.ERROR),
         (1.261, "1.261"),
@@ -82,3 +87,22 @@ def test_interval_due() -> None:
     assert rd.interval_due(None, 60)
     assert rd.interval_due(58, 60)
     assert not rd.interval_due(57.9, 60)
+
+
+def test_first_needs_confirmation() -> None:
+    assert rd.first_needs_confirmation(rd.STATUS_OK, 1.2, None)
+    assert not rd.first_needs_confirmation(rd.STATUS_OK, 1.2, 1.1)
+    assert not rd.first_needs_confirmation(rd.STATUS_UNREADABLE, None, None)
+
+
+def test_retry_and_notify() -> None:
+    assert rd.effective_interval(60, rd.STATUS_ERROR, 1) == rd.RETRY_MINUTES
+    assert rd.effective_interval(60, rd.STATUS_UNREADABLE, 2) == rd.RETRY_MINUTES
+    assert rd.effective_interval(10, rd.STATUS_ERROR, 1) == 10
+    assert rd.effective_interval(60, rd.STATUS_TOO_LARGE, 0) == 60
+    assert rd.effective_interval(60, rd.STATUS_OK, 0) == 60
+    assert not rd.should_notify(rd.STATUS_OK, 0)
+    assert not rd.should_notify(rd.STATUS_ERROR, 2)
+    assert rd.should_notify(rd.STATUS_ERROR, 3)
+    assert rd.should_notify(rd.STATUS_SMALLER, 0)
+    assert rd.should_notify(rd.STATUS_CORRECTED, 0)

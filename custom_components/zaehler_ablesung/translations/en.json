@@ -80,14 +80,16 @@
                 "crop_top": "Top",
                 "crop_right": "Right",
                 "crop_bottom": "Bottom",
-                "rotate": "Rotate"
+                "rotate": "Rotate",
+                "exposure": "Exposure"
               },
               "data_description": {
-                "crop_left": "Left edge of the crop in percent of the picture width.",
-                "crop_top": "Top edge of the crop in percent of the picture height.",
-                "crop_right": "Right edge of the crop in percent of the picture width.",
-                "crop_bottom": "Bottom edge of the crop in percent of the picture height.",
-                "rotate": "Turns the picture clockwise if the camera is mounted sideways or upside down (after cropping)."
+                "crop_left": "Left edge of the crop in percent of the width of the turned picture.",
+                "crop_top": "Top edge of the crop in percent of the height of the turned picture.",
+                "crop_right": "Right edge of the crop in percent of the width of the turned picture.",
+                "crop_bottom": "Bottom edge of the crop in percent of the height of the turned picture.",
+                "rotate": "Turns the picture clockwise by this angle (negative: counterclockwise), e.g. 90 for a camera mounted sideways or a few degrees for a display that sits askew. Turned before cropping, the crop refers to the turned picture.",
+                "exposure": "Brightness of the picture for the AI: 100 % leaves it unchanged, below is darker (against reflections and overexposure), above is brighter."
               }
             },
             "display_section": {
@@ -171,14 +173,16 @@
                 "crop_top": "Top",
                 "crop_right": "Right",
                 "crop_bottom": "Bottom",
-                "rotate": "Rotate"
+                "rotate": "Rotate",
+                "exposure": "Exposure"
               },
               "data_description": {
-                "crop_left": "Left edge of the crop in percent of the picture width.",
-                "crop_top": "Top edge of the crop in percent of the picture height.",
-                "crop_right": "Right edge of the crop in percent of the picture width.",
-                "crop_bottom": "Bottom edge of the crop in percent of the picture height.",
-                "rotate": "Turns the picture clockwise if the camera is mounted sideways or upside down (after cropping)."
+                "crop_left": "Left edge of the crop in percent of the width of the turned picture.",
+                "crop_top": "Top edge of the crop in percent of the height of the turned picture.",
+                "crop_right": "Right edge of the crop in percent of the width of the turned picture.",
+                "crop_bottom": "Bottom edge of the crop in percent of the height of the turned picture.",
+                "rotate": "Turns the picture clockwise by this angle (negative: counterclockwise), e.g. 90 for a camera mounted sideways or a few degrees for a display that sits askew. Turned before cropping, the crop refers to the turned picture.",
+                "exposure": "Brightness of the picture for the AI: 100 % leaves it unchanged, below is darker (against reflections and overexposure), above is brighter."
               }
             },
             "display_section": {
@@ -247,14 +251,6 @@
         "gas": "Gas meter",
         "electricity": "Electricity meter",
         "other": "Other meter"
-      }
-    },
-    "rotate": {
-      "options": {
-        "0": "Do not rotate",
-        "90": "90° clockwise",
-        "180": "180°",
-        "270": "90° counterclockwise"
       }
     }
   },

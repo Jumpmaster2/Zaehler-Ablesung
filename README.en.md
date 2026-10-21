@@ -6,33 +6,35 @@ Custom integration for Home Assistant that reads meters (heat, water, gas, elect
 
 Everything is set up in the **Zähler-Ablesung** dashboard in the sidebar: add a meter, choose camera and light, try the brightness with a test picture, set interval and checks. No automations, scripts or helpers needed.
 
-> Status: version 0.2.1.
+> Status: version 0.3.0.
 
 ## How it works
 
 ### Taking a picture
 
-1. The light (e.g. the flash LED of the ESP32-CAM) is switched on with the configured brightness.
+1. The light (e.g. the flash LED of the ESP32-CAM) is switched on with the configured brightness, once for all pictures of a reading.
 2. After the warm-up time a few pictures are thrown away. Otherwise the ESP32-CAM still delivers an old picture without light from its buffer after a pause.
-3. The real picture is taken, the light goes off.
-4. Optionally the picture is cropped to the **picture crop** and rotated. This matters for wide-angle cameras where the display is otherwise only a small strip. The crop is drawn in the dashboard with mouse or finger over the last picture.
+3. The pictures are taken, then the light goes off. If it was already on before (e.g. for the live picture), it stays on.
+4. Optionally the picture is rotated by any angle (up to ±180°), cropped to the **picture crop** and its **exposure** adjusted. This matters for wide-angle cameras where the display is otherwise only a small strip. In the dashboard the last picture is turned straight and the crop drawn over it with mouse or finger. When mounting the camera the **live picture** there helps (with the light on if wanted), without taking a test picture each time.
 5. The picture the AI gets is stored as `/media/zaehler_ablesung/<meter id>/letztes.jpg` (the uncropped one as `original.jpg`) and shown by the camera entity **Last picture**.
 
 ### Reading with a majority vote
 
 * The AI gets the picture and instructions built from meter type, unit, decimals and your **hints** (see "Show the instructions for the AI" in the editor). It answers only with the number or with "unreadable".
 * Pictures are read until one value was read **twice**, at most the configured number of pictures (default 4). Without such a value the reading is "unreadable".
+* The very first value of a meter is also confirmed by further pictures (default 2), as there is nothing yet to compare it with. A wrong first value (e.g. without the decimal point) would otherwise make every later correct value be rejected as "smaller".
+* If the answer of the AI holds only a unit or a label besides the number ("1234,5 m³", "Reading: 1234.5"), the number counts.
 
 ### Plausibility check
 
 * **Increase too large:** if the value rose by more than *largest increase per hour × hours* since the last valid reading (at least half an hour, two hours without a previous value), it is rejected.
 * **Smaller than before:** a smaller value is only taken when it is at most the *largest correction* lower and further pictures (default 2) all confirm it. It then counts as "corrected" (this fixes an earlier wrong reading).
-* Rejected and corrected readings create a notification in Home Assistant (can be turned off). The picture is kept in `verworfen/` (the latest 20).
+* Rejected and corrected readings create a notification in Home Assistant (can be turned off). For "unreadable" or an unreachable camera/AI only from the third failure in a row. In the dashboard a rejected but correctly read value can be taken with one click. The picture is kept in `verworfen/` (the latest 20) and shown in the dashboard on the meter card under **Rejected pictures**.
 * The meter reading sensor uses state class `total` (not `total_increasing`), so a correction downwards is not counted as a meter reset in the statistics.
 
 ### Schedule
 
-* Every meter is read automatically at its **interval** (checked every 5 minutes).
+* Every meter is read automatically at its **interval** (checked every 5 minutes). After an unreadable or failed reading the next try comes after 15 minutes.
 * Optional **condition**: while this entity is `off`, a second interval applies. Example: a heating day sensor, every 30 minutes on heating days, otherwise every 6 hours.
 * The **Automatic** switch stops the automatic readings, the **Read now** button reads immediately.
 

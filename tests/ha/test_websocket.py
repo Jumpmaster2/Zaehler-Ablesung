@@ -100,3 +100,30 @@ async def test_options_and_prompt(hass: HomeAssistant, base, hass_ws_client) -> 
     )
     assert "MWh" in msg["result"]["instructions"]
     assert "Frame line." in msg["result"]["instructions"]
+
+
+async def test_rejected_pictures(hass: HomeAssistant, base, hass_ws_client) -> None:
+    entry = await setup_entry(hass)
+    meter = next(iter(entry.runtime_data.meters.values()))
+    folder = meter.folder / "verworfen"
+
+    def write() -> None:
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "20261020-101500_smaller.jpg").write_bytes(b"a")
+        (folder / "20261021-090000_unreadable.jpg").write_bytes(b"b")
+        (folder / "20261019-080000.jpg").write_bytes(b"c")
+
+    await hass.async_add_executor_job(write)
+    client = await hass_ws_client(hass)
+    msg = await _send(client, type=f"{DOMAIN}/rejected", subentry_id=meter.id)
+    assert msg["success"], msg
+    pictures = msg["result"]["pictures"]
+    # newest first; older pictures have no status in the name
+    assert [(p["stamp"], p["status"]) for p in pictures] == [
+        ("20261021-090000", "unreadable"),
+        ("20261020-101500", "smaller"),
+        ("20261019-080000", None),
+    ]
+    assert pictures[0]["image"] == "Yg=="
+    msg = await _send(client, type=f"{DOMAIN}/rejected", subentry_id="nope")
+    assert not msg["success"]

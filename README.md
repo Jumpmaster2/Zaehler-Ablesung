@@ -6,33 +6,35 @@ Custom Integration für Home Assistant, die Zähler (Wärme, Wasser, Gas, Strom)
 
 Alles wird im Dashboard **Zähler-Ablesung** in der Seitenleiste eingerichtet: Zähler anlegen, Kamera und Licht wählen, mit einem Testbild die Helligkeit ausprobieren, Intervall und Prüfungen einstellen. Automationen, Skripte und Helfer sind nicht nötig.
 
-> Status: Version 0.2.1.
+> Status: Version 0.3.0.
 
 ## Funktionsweise
 
 ### Ein Bild aufnehmen
 
-1. Das Licht (z. B. die Blitz-LED der ESP32-CAM) wird mit der eingestellten Helligkeit eingeschaltet.
+1. Das Licht (z. B. die Blitz-LED der ESP32-CAM) wird mit der eingestellten Helligkeit eingeschaltet, einmal für alle Bilder einer Ablesung.
 2. Nach der Vorlaufzeit werden einige Bilder verworfen. Die ESP32-CAM liefert nach einer Pause sonst noch ein altes Bild ohne Licht aus ihrem Puffer.
-3. Das eigentliche Bild wird aufgenommen, das Licht geht aus.
-4. Optional wird das Bild auf den **Bildausschnitt** zugeschnitten und gedreht. Das ist bei Weitwinkel-Kameras wichtig, auf denen die Anzeige sonst nur ein kleiner Streifen ist. Den Ausschnitt zieht man im Dashboard mit Maus oder Finger über dem letzten Bild auf.
+3. Die Bilder werden aufgenommen, danach geht das Licht aus. War es vorher schon an (z. B. für das Livebild), bleibt es an.
+4. Optional wird das Bild um einen beliebigen Winkel (bis ±180°) gedreht, auf den **Bildausschnitt** zugeschnitten und in der **Belichtung** angepasst. Das ist bei Weitwinkel-Kameras wichtig, auf denen die Anzeige sonst nur ein kleiner Streifen ist. Im Dashboard dreht man das letzte Bild gerade und zieht den Ausschnitt mit Maus oder Finger darüber auf. Beim Einrichten der Kamera hilft das **Livebild** dort (auf Wunsch mit eingeschaltetem Licht), ohne jedes Mal ein Testbild aufzunehmen.
 5. Das Bild, das die KI bekommt, liegt danach unter `/media/zaehler_ablesung/<Zähler-ID>/letztes.jpg` (das unbeschnittene als `original.jpg`) und ist als Kamera-Entität **Letztes Bild** sichtbar.
 
 ### Ablesen mit Mehrheitsentscheid
 
 * Die KI bekommt das Bild und eine Anweisung, die sich aus Zählerart, Einheit, Nachkommastellen und deinen **Hinweisen** zusammensetzt (im Editor unter "Anweisung an die KI anzeigen" einsehbar). Sie antwortet nur mit der Zahl oder mit "unlesbar".
 * Es werden so lange Bilder gelesen, bis ein Wert **zweimal gleich** gelesen wurde, höchstens die eingestellte Zahl an Bildern (Standard 4). Gibt es keinen solchen Wert, ist die Ablesung "unlesbar".
+* Der allererste Wert eines Zählers wird zusätzlich durch weitere Bilder (Standard 2) bestätigt, weil es noch nichts gibt, womit er sich vergleichen ließe. Ein falsch gelesener Erstwert (z. B. ohne Komma) würde sonst alle späteren richtigen Werte als "kleiner" verwerfen lassen.
+* Steht in der Antwort der KI außer der Zahl nur eine Einheit oder eine Bezeichnung ("1234,5 m³", "Zählerstand: 1234.5"), zählt die Zahl.
 
 ### Plausibilitätsprüfung
 
 * **Anstieg zu groß:** Steigt der Wert seit der letzten gültigen Ablesung um mehr als *größter Anstieg pro Stunde × Stunden* (mindestens eine halbe Stunde, ohne vorherigen Wert zwei Stunden), wird er verworfen.
 * **Kleiner als zuvor:** Ein kleinerer Wert wird nur übernommen, wenn er höchstens um die *größte Korrektur* kleiner ist und weitere Bilder (Standard 2) ihn alle bestätigen. Dann gilt er als "korrigiert" (eine frühere Fehllesung wird damit berichtigt).
-* Verworfene und korrigierte Ablesungen erzeugen eine Benachrichtigung in Home Assistant (abschaltbar). Das Bild wird unter `verworfen/` aufbewahrt (die letzten 20).
+* Verworfene und korrigierte Ablesungen erzeugen eine Benachrichtigung in Home Assistant (abschaltbar). Bei "unlesbar" oder nicht erreichbarer Kamera/KI erst ab dem dritten Fehlschlag in Folge. Im Dashboard lässt sich ein verworfener, aber richtig gelesener Wert mit einem Klick übernehmen. Das Bild wird unter `verworfen/` aufbewahrt (die letzten 20) und ist im Dashboard auf der Zählerkarte unter **Verworfene Bilder** zu sehen.
 * Der Zählerstand-Sensor hat die Zustandsklasse `total` (nicht `total_increasing`), damit eine Korrektur nach unten in der Statistik nicht als Zählertausch zählt.
 
 ### Zeitplan
 
-* Jeder Zähler wird automatisch im eingestellten **Intervall** abgelesen (Prüfung alle 5 Minuten).
+* Jeder Zähler wird automatisch im eingestellten **Intervall** abgelesen (Prüfung alle 5 Minuten). Nach einer unlesbaren oder fehlgeschlagenen Ablesung kommt der nächste Versuch schon nach 15 Minuten.
 * Optional eine **Bedingung**: Solange diese Entität `off` ist, gilt ein zweites Intervall. Beispiel: ein Heiztag-Sensor, an Heiztagen alle 30 Minuten, sonst alle 6 Stunden.
 * Der Schalter **Automatik** stoppt die automatischen Ablesungen, die Schaltfläche **Jetzt ablesen** liest sofort ab.
 

@@ -6,6 +6,7 @@ import logging
 
 from homeassistant.const import Platform
 
+from .logic.image import crop_after_rotation, rotation
 from .logic.units import TYPE_DEFAULTS, TYPE_HEAT
 
 DOMAIN = "zaehler_ablesung"
@@ -50,6 +51,7 @@ CONF_CROP_TOP = "crop_top"
 CONF_CROP_RIGHT = "crop_right"
 CONF_CROP_BOTTOM = "crop_bottom"
 CONF_ROTATE = "rotate"
+CONF_EXPOSURE = "exposure"
 CONF_UNIT = "unit"
 CONF_DECIMALS = "decimals"
 CONF_HINTS = "hints"
@@ -78,7 +80,8 @@ METER_DEFAULTS = {
     CONF_CROP_TOP: 0,
     CONF_CROP_RIGHT: 100,
     CONF_CROP_BOTTOM: 100,
-    CONF_ROTATE: "0",
+    CONF_ROTATE: 0,
+    CONF_EXPOSURE: 100,
     CONF_INTERVAL: 60,
     CONF_INTERVAL_OFF: 360,
     CONF_MAX_ATTEMPTS: 4,
@@ -100,3 +103,18 @@ def type_defaults(meter_type: str) -> dict:
 
 def meter_defaults(meter_type: str) -> dict:
     return {**METER_DEFAULTS, **type_defaults(meter_type), CONF_TYPE: meter_type}
+
+
+def meter_values(data: dict) -> dict:
+    """Stored meter data with the defaults; older versions are converted.
+
+    They stored the rotation as text ("90") and turned the picture after cropping.
+    """
+    values = {**meter_defaults(data.get(CONF_TYPE, TYPE_HEAT)), **data}
+    rotate = values.get(CONF_ROTATE)
+    if isinstance(rotate, str):
+        crop = (CONF_CROP_LEFT, CONF_CROP_TOP, CONF_CROP_RIGHT, CONF_CROP_BOTTOM)
+        turned = crop_after_rotation(*(float(values[k]) for k in crop), rotate)
+        values.update(zip(crop, turned, strict=True))
+    values[CONF_ROTATE] = rotation(rotate)
+    return values

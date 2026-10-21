@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import shutil
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -33,6 +33,7 @@ from .const import (
     CONF_CROP_TOP,
     CONF_DECIMALS,
     CONF_DISCARD,
+    CONF_EXPOSURE,
     CONF_HINTS,
     CONF_INTERVAL,
     CONF_INTERVAL_OFF,
@@ -58,10 +59,10 @@ from .const import (
     SIGNAL_UPDATE,
     STORAGE_VERSION,
     SUBENTRY_METER,
-    meter_defaults,
+    meter_values,
 )
 from .logic import reading as rd
-from .logic.image import needs_processing, process
+from .logic.image import needs_processing, process, thumbnail
 from .logic.prompt import build_instructions
 from .logic.units import rate_unit
 
@@ -83,6 +84,10 @@ class MeterState:
     last_check: datetime | None = None
     readings: list[str] | None = None
     automatic: bool = True
+    # value the AI agreed on in the last run, also when it was rejected
+    read_value: float | None = None
+    # failed readings (camera, AI, unreadable) in a row
+    failures: int = 0
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -93,6 +98,8 @@ class MeterState:
             "last_check": self.last_check.isoformat() if self.last_check else None,
             "readings": self.readings,
             "automatic": self.automatic,
+            "read_value": self.read_value,
+            "failures": self.failures,
         }
 
     @classmethod
@@ -110,6 +117,8 @@ class MeterState:
             last_check=when("last_check"),
             readings=data.get("readings"),
             automatic=data.get("automatic", True),
+            read_value=data.get("read_value"),
+            failures=int(data.get("failures") or 0),
         )
 
 
@@ -121,7 +130,7 @@ class Meter:
         self.hass = manager.hass
         self.id = meter_id
         self.title = title
-        self.config = {**meter_defaults(data.get(CONF_TYPE, "heat")), **data}
+        self.config = meter_values(data)
         self.state = MeterState()
         self.image: bytes | None = None
         self.image_time: datetime | None = None
@@ -158,11 +167,14 @@ class Meter:
         return f"media-source://media_source/local/{MEDIA_FOLDER}/{self.id}/{IMAGE_NAME}"
 
     def interval_minutes(self) -> float:
-        """Interval now: the second interval applies while the condition entity is off."""
+        """Interval now: the second interval applies while the condition entity is off,
+        a failed reading is tried again sooner."""
         condition = self.opt(CONF_CONDITION)
         if condition and (st := self.hass.states.get(condition)) and st.state == "off":
-            return float(self.opt(CONF_INTERVAL_OFF))
-        return float(self.opt(CONF_INTERVAL))
+            interval = float(self.opt(CONF_INTERVAL_OFF))
+        else:
+            interval = float(self.opt(CONF_INTERVAL))
+        return rd.effective_interval(interval, self.state.status, self.state.failures)
 
     def next_check(self) -> datetime | None:
         if not self.state.automatic:
@@ -202,39 +214,56 @@ class Meter:
         )
         return image.content
 
-    async def async_take_picture(self) -> bytes | None:
-        """Light on, wait, skip the old pictures from the buffer, take one, light off."""
+    @contextlib.asynccontextmanager
+    async def _session(self) -> AsyncIterator[None]:
+        """Light on once for all pictures of a run, wait, skip the old buffered pictures.
+
+        A light that was already on (e.g. for the live picture) stays on afterwards.
+        """
+        light = self.opt(CONF_LIGHT)
+        state = self.hass.states.get(light) if light else None
+        was_on = state is not None and state.state == "on"
         try:
-            await self._light(True)
+            try:
+                await self._light(True)
+            except HomeAssistantError as err:
+                LOGGER.warning("%s: could not switch the light on: %s", self.title, err)
             await asyncio.sleep(float(self.opt(CONF_WARMUP)))
             # the first pictures after a pause still come from the buffers (without light)
             for _ in range(int(self.opt(CONF_DISCARD))):
-                with contextlib.suppress(HomeAssistantError):
+                with contextlib.suppress(HomeAssistantError, TimeoutError):
                     await self._get_image()
             if int(self.opt(CONF_DISCARD)):
                 await asyncio.sleep(SETTLE_SECONDS)
+            yield
+        finally:
+            if not was_on:
+                try:
+                    await self._light(False)
+                except HomeAssistantError as err:
+                    LOGGER.warning("%s: could not switch the light off: %s", self.title, err)
+
+    async def async_take_picture(self) -> bytes | None:
+        """One picture (inside a session), stored as original and as the picture the AI reads."""
+        try:
             content = await self._get_image()
         except (HomeAssistantError, TimeoutError) as err:
             LOGGER.warning("%s: no picture from the camera: %s", self.title, err)
             return None
-        finally:
-            try:
-                await self._light(False)
-            except HomeAssistantError as err:
-                LOGGER.warning("%s: could not switch the light off: %s", self.title, err)
         image = await self.hass.async_add_executor_job(self._store_image, content)
         self.image = image
         self.image_time = dt_util.utcnow()
         self.notify()
         return image
 
-    def _crop(self) -> tuple[float, float, float, float, str]:
+    def _crop(self) -> tuple[float, float, float, float, float, float]:
         return (
             float(self.opt(CONF_CROP_LEFT)),
             float(self.opt(CONF_CROP_TOP)),
             float(self.opt(CONF_CROP_RIGHT)),
             float(self.opt(CONF_CROP_BOTTOM)),
-            str(self.opt(CONF_ROTATE)),
+            float(self.opt(CONF_ROTATE)),
+            float(self.opt(CONF_EXPOSURE)),
         )
 
     def _store_image(self, content: bytes) -> bytes:
@@ -255,16 +284,34 @@ class Meter:
             return path.read_bytes()
         return None
 
-    def _keep_rejected(self, stamp: str) -> None:
+    def _keep_rejected(self, stamp: str, status: str) -> None:
         """Copy the last picture of a rejected reading and keep only the newest ones."""
         source = self.folder / IMAGE_NAME
         if not source.exists():
             return
         target = self.folder / REJECTED_FOLDER
         target.mkdir(parents=True, exist_ok=True)
-        (target / f"{stamp}.jpg").write_bytes(source.read_bytes())
+        (target / f"{stamp}_{status}.jpg").write_bytes(source.read_bytes())
         for old in sorted(target.glob("*.jpg"))[:-REJECTED_KEEP]:
             old.unlink(missing_ok=True)
+
+    def load_rejected(self) -> list[dict[str, Any]]:
+        """Pictures of rejected readings, newest first, made small for the panel (executor)."""
+        folder = self.folder / REJECTED_FOLDER
+        if not folder.is_dir():
+            return []
+        result = []
+        for path in sorted(folder.glob("*.jpg"), reverse=True)[:REJECTED_KEEP]:
+            stamp, _, status = path.stem.partition("_")
+            result.append(
+                {
+                    "name": path.name,
+                    "stamp": stamp,
+                    "status": status or None,
+                    "image": thumbnail(path.read_bytes()),
+                }
+            )
+        return result
 
     def load_image(self) -> None:
         """Picture of the last run (executor); cropped again in case the crop changed."""
@@ -292,12 +339,14 @@ class Meter:
             self.opt(CONF_HINTS),
             self.hass.config.language,
         )
+        de = (self.hass.config.language or "").startswith("de")
+        task_name = f"{self.title} ablesen" if de else f"Read {self.title}"
         try:
             response = await self.hass.services.async_call(
                 "ai_task",
                 "generate_data",
                 {
-                    "task_name": f"{self.title} ablesen",
+                    "task_name": task_name,
                     "entity_id": entity_id,
                     "instructions": instructions,
                     "attachments": [
@@ -331,7 +380,8 @@ class Meter:
             self.busy = "picture"
             self.notify()
             try:
-                return await self.async_take_picture() is not None
+                async with self._session():
+                    return await self.async_take_picture() is not None
             finally:
                 self.busy = None
                 self.notify()
@@ -344,7 +394,8 @@ class Meter:
             self.busy = "reading"
             self.notify()
             try:
-                return await self._read()
+                async with self._session():
+                    return await self._read()
             finally:
                 self.busy = None
                 self.notify()
@@ -369,6 +420,11 @@ class Meter:
             readings.extend(extra)
             if value is not None and rd.confirmed(extra, value):
                 status = rd.STATUS_CORRECTED
+        elif rd.first_needs_confirmation(status, value, previous):
+            extra = [await self.async_single() for _ in range(int(self.opt(CONF_CONFIRMATIONS)))]
+            readings.extend(extra)
+            if value is None or not rd.confirmed(extra, value):
+                status = rd.STATUS_UNREADABLE
 
         valid = status in rd.VALID_STATUSES
         result = rd.rate(status, value, previous, hours, self.rate_unit[1])
@@ -376,6 +432,8 @@ class Meter:
         state.last_check = now
         state.status = status
         state.readings = readings
+        state.read_value = value
+        state.failures = state.failures + 1 if status in rd.FAILED_STATUSES else 0
         if valid and value is not None:
             state.value = value
             state.value_time = now
@@ -399,8 +457,10 @@ class Meter:
         )
         if status != rd.STATUS_OK:
             stamp = dt_util.as_local(now).strftime("%Y%m%d-%H%M%S")
-            await self.hass.async_add_executor_job(self._keep_rejected, stamp)
-            if self.manager.options.get(CONF_NOTIFY, DEFAULTS[CONF_NOTIFY]):
+            await self.hass.async_add_executor_job(self._keep_rejected, stamp, status)
+            if self.manager.options.get(CONF_NOTIFY, DEFAULTS[CONF_NOTIFY]) and rd.should_notify(
+                status, state.failures
+            ):
                 self._notification(status, value, previous, readings, limit, now)
         else:
             persistent_notification.async_dismiss(self.hass, self._notification_id)
@@ -452,6 +512,7 @@ class Meter:
         self.state.value_time = now
         self.state.status = rd.STATUS_MANUAL
         self.state.rate = None
+        self.state.failures = 0
         self.manager.async_save()
         self.notify()
 
