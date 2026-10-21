@@ -15,7 +15,7 @@ Alles wird im Dashboard **Zähler-Ablesung** in der Seitenleiste eingerichtet: Z
 1. Das Licht (z. B. die Blitz-LED der ESP32-CAM) wird mit der eingestellten Helligkeit eingeschaltet.
 2. Nach der Vorlaufzeit werden einige Bilder verworfen. Die ESP32-CAM liefert nach einer Pause sonst noch ein altes Bild ohne Licht aus ihrem Puffer.
 3. Das eigentliche Bild wird aufgenommen, das Licht geht aus.
-4. Optional wird das Bild auf den **Bildausschnitt** zugeschnitten und gedreht. Das ist bei Weitwinkel-Kameras wichtig, auf denen die Anzeige sonst nur ein kleiner Streifen ist. Den Ausschnitt zieht man im Dashboard mit Maus oder Finger über dem letzten Bild auf.
+4. Optional wird das Bild auf den **Bildausschnitt** zugeschnitten, um einen beliebigen Winkel (bis ±180°) gedreht und in der **Belichtung** angepasst. Das ist bei Weitwinkel-Kameras wichtig, auf denen die Anzeige sonst nur ein kleiner Streifen ist. Den Ausschnitt zieht man im Dashboard mit Maus oder Finger über dem letzten Bild auf.
 5. Das Bild, das die KI bekommt, liegt danach unter `/media/zaehler_ablesung/<Zähler-ID>/letztes.jpg` (das unbeschnittene als `original.jpg`) und ist als Kamera-Entität **Letztes Bild** sichtbar.
 
 ### Ablesen mit Mehrheitsentscheid

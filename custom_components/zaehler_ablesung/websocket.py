@@ -25,6 +25,7 @@ from .const import (
     METER_SECTIONS,
     SUBENTRY_METER,
     meter_defaults,
+    meter_values,
 )
 from .logic.prompt import build_instructions, default_hints
 from .logic.units import METER_TYPES, rate_unit
@@ -170,7 +171,7 @@ def config_payload(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
             if (entity_id := registry.async_get_entity_id(domain, DOMAIN, f"{sub_id}_{key}"))
         }
         meter = manager.meters.get(sub_id) if manager else None
-        data = {**meter_defaults(sub.data.get(CONF_TYPE, "heat")), **sub.data}
+        data = meter_values(sub.data)
         meters.append(
             {
                 "id": sub_id,

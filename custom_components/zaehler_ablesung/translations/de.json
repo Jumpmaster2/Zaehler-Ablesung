@@ -80,14 +80,16 @@
                 "crop_top": "Oben",
                 "crop_right": "Rechts",
                 "crop_bottom": "Unten",
-                "rotate": "Drehen"
+                "rotate": "Drehen",
+                "exposure": "Belichtung"
               },
               "data_description": {
                 "crop_left": "Linker Rand des Ausschnitts in Prozent der Bildbreite.",
                 "crop_top": "Oberer Rand des Ausschnitts in Prozent der Bildhöhe.",
                 "crop_right": "Rechter Rand des Ausschnitts in Prozent der Bildbreite.",
                 "crop_bottom": "Unterer Rand des Ausschnitts in Prozent der Bildhöhe.",
-                "rotate": "Dreht das Bild im Uhrzeigersinn, falls die Kamera seitlich oder kopfüber montiert ist (nach dem Zuschneiden)."
+                "rotate": "Dreht das Bild im Uhrzeigersinn um diesen Winkel (negativ: gegen den Uhrzeigersinn), z. B. 90 für eine seitlich montierte Kamera oder ein paar Grad für eine schief sitzende Anzeige. Gedreht wird nach dem Zuschneiden.",
+                "exposure": "Helligkeit des Bildes für die KI: 100 % lässt es unverändert, darunter dunkler (gegen Spiegelungen und Überbelichtung), darüber heller."
               }
             },
             "display_section": {
@@ -171,14 +173,16 @@
                 "crop_top": "Oben",
                 "crop_right": "Rechts",
                 "crop_bottom": "Unten",
-                "rotate": "Drehen"
+                "rotate": "Drehen",
+                "exposure": "Belichtung"
               },
               "data_description": {
                 "crop_left": "Linker Rand des Ausschnitts in Prozent der Bildbreite.",
                 "crop_top": "Oberer Rand des Ausschnitts in Prozent der Bildhöhe.",
                 "crop_right": "Rechter Rand des Ausschnitts in Prozent der Bildbreite.",
                 "crop_bottom": "Unterer Rand des Ausschnitts in Prozent der Bildhöhe.",
-                "rotate": "Dreht das Bild im Uhrzeigersinn, falls die Kamera seitlich oder kopfüber montiert ist (nach dem Zuschneiden)."
+                "rotate": "Dreht das Bild im Uhrzeigersinn um diesen Winkel (negativ: gegen den Uhrzeigersinn), z. B. 90 für eine seitlich montierte Kamera oder ein paar Grad für eine schief sitzende Anzeige. Gedreht wird nach dem Zuschneiden.",
+                "exposure": "Helligkeit des Bildes für die KI: 100 % lässt es unverändert, darunter dunkler (gegen Spiegelungen und Überbelichtung), darüber heller."
               }
             },
             "display_section": {
@@ -247,14 +251,6 @@
         "gas": "Gaszähler",
         "electricity": "Stromzähler",
         "other": "Anderer Zähler"
-      }
-    },
-    "rotate": {
-      "options": {
-        "0": "Nicht drehen",
-        "90": "90° im Uhrzeigersinn",
-        "180": "180°",
-        "270": "90° gegen den Uhrzeigersinn"
       }
     }
   },

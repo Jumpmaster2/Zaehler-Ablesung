@@ -41,6 +41,7 @@ from .const import (
     CONF_CROP_TOP,
     CONF_DECIMALS,
     CONF_DISCARD,
+    CONF_EXPOSURE,
     CONF_HINTS,
     CONF_INTERVAL,
     CONF_INTERVAL_OFF,
@@ -66,8 +67,9 @@ from .const import (
     SECTION_SCHEDULE,
     SUBENTRY_METER,
     meter_defaults,
+    meter_values,
 )
-from .logic.image import ROTATIONS
+from .logic.image import EXPOSURE_RANGE, MAX_ROTATION
 from .logic.prompt import default_hints
 from .logic.units import METER_TYPES, UNITS
 
@@ -178,13 +180,8 @@ def meter_sections(v: dict[str, Any]) -> dict[str, vol.Schema]:
                 req(CONF_CROP_TOP): _number(0, 100, 0.5, "%"),
                 req(CONF_CROP_RIGHT): _number(0, 100, 0.5, "%"),
                 req(CONF_CROP_BOTTOM): _number(0, 100, 0.5, "%"),
-                req(CONF_ROTATE): SelectSelector(
-                    SelectSelectorConfig(
-                        options=ROTATIONS,
-                        translation_key="rotate",
-                        mode=SelectSelectorMode.DROPDOWN,
-                    )
-                ),
+                req(CONF_ROTATE): _number(-MAX_ROTATION, MAX_ROTATION, 0.5, "°"),
+                req(CONF_EXPOSURE): _number(*EXPOSURE_RANGE, 5, "%"),
             }
         ),
         SECTION_DISPLAY: vol.Schema(
@@ -316,11 +313,7 @@ class MeterSubentryFlow(ConfigSubentryFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> SubentryFlowResult:
         subentry = self._get_reconfigure_subentry()
-        values = {
-            **meter_defaults(subentry.data.get(CONF_TYPE, "heat")),
-            CONF_NAME: subentry.title,
-            **subentry.data,
-        }
+        values = {CONF_NAME: subentry.title, **meter_values(subentry.data)}
         errors: dict[str, str] = {}
         if user_input is not None:
             data = clean_meter(user_input)

@@ -1,10 +1,23 @@
-"""Crop and rotate the camera picture so the AI only sees the display."""
+"""Crop, rotate and brighten the camera picture so the AI only sees the display."""
 
 from __future__ import annotations
 
 import io
 
-ROTATIONS = ["0", "90", "180", "270"]
+MAX_ROTATION = 180
+EXPOSURE_RANGE = (10, 400)
+
+
+def rotation(value: str | float | None) -> float:
+    """Clockwise angle in -180..180; older versions stored "0", "90", "180" or "270"."""
+    try:
+        degrees = float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+    degrees = degrees % 360
+    if degrees > MAX_ROTATION:
+        degrees -= 360
+    return degrees
 
 
 def crop_box(
@@ -26,9 +39,18 @@ def crop_box(
 
 
 def needs_processing(
-    left: float, top: float, right: float, bottom: float, rotate: str | int
+    left: float,
+    top: float,
+    right: float,
+    bottom: float,
+    rotate: str | float = 0,
+    exposure: float = 100,
 ) -> bool:
-    return str(rotate) != "0" or crop_box(100, 100, left, top, right, bottom) is not None
+    return (
+        rotation(rotate) != 0
+        or float(exposure) != 100
+        or crop_box(100, 100, left, top, right, bottom) is not None
+    )
 
 
 def process(
@@ -37,25 +59,39 @@ def process(
     top: float = 0,
     right: float = 100,
     bottom: float = 100,
-    rotate: str | int = "0",
+    rotate: str | float = 0,
+    exposure: float = 100,
 ) -> bytes:
-    """Cropped and rotated JPEG; the original when nothing is to do or it cannot be decoded."""
-    if not needs_processing(left, top, right, bottom, rotate):
+    """Cropped, rotated and brightened JPEG; the original when nothing is to do or it cannot be decoded."""
+    if not needs_processing(left, top, right, bottom, rotate, exposure):
         return content
-    from PIL import Image, UnidentifiedImageError
+    from PIL import Image, ImageEnhance, UnidentifiedImageError
 
     try:
         image = Image.open(io.BytesIO(content))
         image.load()
     except (UnidentifiedImageError, OSError):
         return content
+    image = image.convert("RGB")
     box = crop_box(image.width, image.height, left, top, right, bottom)
     if box:
         image = image.crop(box)
-    degrees = int(str(rotate)) % 360
+    degrees = rotation(rotate)
     if degrees:
-        # clockwise like a camera that is mounted turned to the right
-        image = image.rotate(-degrees, expand=True)
+        # clockwise like a camera that is mounted turned to the right; right angles stay sharp
+        transpose = {
+            90: Image.Transpose.ROTATE_270,
+            180: Image.Transpose.ROTATE_180,
+            -90: Image.Transpose.ROTATE_90,
+        }.get(degrees)
+        if transpose is not None:
+            image = image.transpose(transpose)
+        else:
+            image = image.rotate(-degrees, resample=Image.Resampling.BICUBIC, expand=True)
+    low, high = EXPOSURE_RANGE
+    factor = max(low, min(high, float(exposure))) / 100
+    if factor != 1:
+        image = ImageEnhance.Brightness(image).enhance(factor)
     out = io.BytesIO()
-    image.convert("RGB").save(out, format="JPEG", quality=92)
+    image.save(out, format="JPEG", quality=92)
     return out.getvalue()

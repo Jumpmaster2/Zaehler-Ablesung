@@ -33,6 +33,7 @@ from .const import (
     CONF_CROP_TOP,
     CONF_DECIMALS,
     CONF_DISCARD,
+    CONF_EXPOSURE,
     CONF_HINTS,
     CONF_INTERVAL,
     CONF_INTERVAL_OFF,
@@ -58,7 +59,7 @@ from .const import (
     SIGNAL_UPDATE,
     STORAGE_VERSION,
     SUBENTRY_METER,
-    meter_defaults,
+    meter_values,
 )
 from .logic import reading as rd
 from .logic.image import needs_processing, process
@@ -121,7 +122,7 @@ class Meter:
         self.hass = manager.hass
         self.id = meter_id
         self.title = title
-        self.config = {**meter_defaults(data.get(CONF_TYPE, "heat")), **data}
+        self.config = meter_values(data)
         self.state = MeterState()
         self.image: bytes | None = None
         self.image_time: datetime | None = None
@@ -228,13 +229,14 @@ class Meter:
         self.notify()
         return image
 
-    def _crop(self) -> tuple[float, float, float, float, str]:
+    def _crop(self) -> tuple[float, float, float, float, float, float]:
         return (
             float(self.opt(CONF_CROP_LEFT)),
             float(self.opt(CONF_CROP_TOP)),
             float(self.opt(CONF_CROP_RIGHT)),
             float(self.opt(CONF_CROP_BOTTOM)),
-            str(self.opt(CONF_ROTATE)),
+            float(self.opt(CONF_ROTATE)),
+            float(self.opt(CONF_EXPOSURE)),
         )
 
     def _store_image(self, content: bytes) -> bytes:

@@ -56,7 +56,11 @@ export const LABELS = {
    ],
    "rotate": [
     "Drehen",
-    "Dreht das Bild im Uhrzeigersinn, falls die Kamera seitlich oder kopfüber montiert ist (nach dem Zuschneiden)."
+    "Dreht das Bild im Uhrzeigersinn um diesen Winkel (negativ: gegen den Uhrzeigersinn), z. B. 90 für eine seitlich montierte Kamera oder ein paar Grad für eine schief sitzende Anzeige. Gedreht wird nach dem Zuschneiden."
+   ],
+   "exposure": [
+    "Belichtung",
+    "Helligkeit des Bildes für die KI: 100 % lässt es unverändert, darunter dunkler (gegen Spiegelungen und Überbelichtung), darüber heller."
    ],
    "unit": [
     "Einheit",
@@ -145,12 +149,6 @@ export const LABELS = {
    "electricity": "Stromzähler",
    "other": "Anderer Zähler"
   },
-  "rotate": {
-   "0": "Nicht drehen",
-   "90": "90° im Uhrzeigersinn",
-   "180": "180°",
-   "270": "90° gegen den Uhrzeigersinn"
-  },
   "entities": {
    "reading": "Zählerstand",
    "rate": "Mittlerer Verbrauch",
@@ -221,7 +219,11 @@ export const LABELS = {
    ],
    "rotate": [
     "Rotate",
-    "Turns the picture clockwise if the camera is mounted sideways or upside down (after cropping)."
+    "Turns the picture clockwise by this angle (negative: counterclockwise), e.g. 90 for a camera mounted sideways or a few degrees for a display that sits askew. Turned after cropping."
+   ],
+   "exposure": [
+    "Exposure",
+    "Brightness of the picture for the AI: 100 % leaves it unchanged, below is darker (against reflections and overexposure), above is brighter."
    ],
    "unit": [
     "Unit",
@@ -309,12 +311,6 @@ export const LABELS = {
    "gas": "Gas meter",
    "electricity": "Electricity meter",
    "other": "Other meter"
-  },
-  "rotate": {
-   "0": "Do not rotate",
-   "90": "90° clockwise",
-   "180": "180°",
-   "270": "90° counterclockwise"
   },
   "entities": {
    "reading": "Meter reading",

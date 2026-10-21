@@ -560,13 +560,19 @@ class ZaehlerAblesungPanel extends HTMLElement {
     return { l, t, r, b };
   }
 
+  // the exposure is a plain brightness factor, the browser can show it the same way
+  _exposureFilter() {
+    const v = Number(this._edit.data.exposure);
+    return Number.isFinite(v) && v > 0 ? `brightness(${v / 100})` : "none";
+  }
+
   _cropHtml() {
     const ui = this.ui;
     const e = this._edit;
     if (!e.original) return `<div class="crop-box"><div class="muted small">${esc(e.id ? ui.cropNoImage : ui.previewHint)}</div></div>`;
     const { l, t, r, b } = this._cropRect();
     return `<div class="crop-box">
-      <div class="crop-wrap" data-crop="1"><img src="${e.original}" alt="" draggable="false">
+      <div class="crop-wrap" data-crop="1"><img src="${e.original}" alt="" draggable="false" style="filter:${this._exposureFilter()}">
         <div class="crop-rect" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"></div></div>
       <div class="actions"><span class="msg small">${esc(ui.cropHelp)}</span><button class="btn" data-action="crop-reset">${esc(ui.cropReset)}</button></div>
     </div>`;
@@ -765,6 +771,10 @@ class ZaehlerAblesungPanel extends HTMLElement {
       const { l, t, r, b } = this._cropRect();
       const rect = this.shadowRoot.querySelector(".crop-rect");
       if (rect) Object.assign(rect.style, { left: `${l}%`, top: `${t}%`, width: `${r - l}%`, height: `${b - t}%` });
+    }
+    if (cardId === "edit" && key === "exposure") {
+      const img = this.shadowRoot.querySelector(".crop-wrap img");
+      if (img) img.style.filter = this._exposureFilter();
     }
     if (cardId === "edit" && key === "unit" && isChange) this._rerenderContent();
   }

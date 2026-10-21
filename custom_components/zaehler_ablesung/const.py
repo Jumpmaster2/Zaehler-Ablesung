@@ -6,6 +6,7 @@ import logging
 
 from homeassistant.const import Platform
 
+from .logic.image import rotation
 from .logic.units import TYPE_DEFAULTS, TYPE_HEAT
 
 DOMAIN = "zaehler_ablesung"
@@ -50,6 +51,7 @@ CONF_CROP_TOP = "crop_top"
 CONF_CROP_RIGHT = "crop_right"
 CONF_CROP_BOTTOM = "crop_bottom"
 CONF_ROTATE = "rotate"
+CONF_EXPOSURE = "exposure"
 CONF_UNIT = "unit"
 CONF_DECIMALS = "decimals"
 CONF_HINTS = "hints"
@@ -78,7 +80,8 @@ METER_DEFAULTS = {
     CONF_CROP_TOP: 0,
     CONF_CROP_RIGHT: 100,
     CONF_CROP_BOTTOM: 100,
-    CONF_ROTATE: "0",
+    CONF_ROTATE: 0,
+    CONF_EXPOSURE: 100,
     CONF_INTERVAL: 60,
     CONF_INTERVAL_OFF: 360,
     CONF_MAX_ATTEMPTS: 4,
@@ -100,3 +103,10 @@ def type_defaults(meter_type: str) -> dict:
 
 def meter_defaults(meter_type: str) -> dict:
     return {**METER_DEFAULTS, **type_defaults(meter_type), CONF_TYPE: meter_type}
+
+
+def meter_values(data: dict) -> dict:
+    """Stored meter data with the defaults; the rotation of older versions as an angle."""
+    values = {**meter_defaults(data.get(CONF_TYPE, TYPE_HEAT)), **data}
+    values[CONF_ROTATE] = rotation(values.get(CONF_ROTATE))
+    return values
