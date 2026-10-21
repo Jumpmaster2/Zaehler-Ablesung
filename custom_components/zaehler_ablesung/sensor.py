@@ -122,6 +122,8 @@ class StatusSensor(MeterEntity, SensorEntity):
         s = self.meter.state
         return {
             "readings": s.readings or [],
+            "read_value": s.read_value,
+            "failures": s.failures,
             "running": self.meter.busy,
             "image_time": self.meter.image_time.isoformat() if self.meter.image_time else None,
         }
