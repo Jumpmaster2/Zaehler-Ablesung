@@ -49,7 +49,11 @@ const UI = {
     prompt: "Anweisung an die KI anzeigen",
     cropHelp: "Erst das Bild gerade drehen, dann einen Rahmen um die Anzeige ziehen (Maus oder Finger). Gespeichert wird mit „Speichern“, das nächste Bild ist dann gedreht und zugeschnitten.",
     rotate: "Drehen",
-    cropNoImage: "Noch kein Bild. Erst speichern und ein Testbild aufnehmen.",
+    cropNoImage: "Noch kein Bild. Erst speichern und ein Testbild aufnehmen, oder das Livebild ansehen.",
+    live: "Livebild",
+    liveStop: "Livebild beenden",
+    liveLight: "Licht an",
+    liveHint: "Livebild der Kamera, gedreht wie eingestellt. Gut zum Ausrichten der Kamera; die KI bekommt später ein Einzelbild.",
     cropReset: "Ganzes Bild",
     columns: { name: "Name", type: "Art", reading: "Zählerstand", status: "Status" },
     warnings: "Hinweise",
@@ -102,7 +106,11 @@ const UI = {
     prompt: "Show the instructions for the AI",
     cropHelp: "First turn the picture straight, then draw a frame around the display (mouse or finger). Saved with “Save”, the next picture is then turned and cropped.",
     rotate: "Rotate",
-    cropNoImage: "No picture yet. Save first and take a test picture.",
+    cropNoImage: "No picture yet. Save first and take a test picture, or watch the live picture.",
+    live: "Live picture",
+    liveStop: "Stop live picture",
+    liveLight: "Light on",
+    liveHint: "Live picture of the camera, turned as set. Good for aligning the camera; the AI later gets a single picture.",
     cropReset: "Whole picture",
     columns: { name: "Name", type: "Type", reading: "Meter reading", status: "Status" },
     warnings: "Notes",
@@ -149,6 +157,27 @@ const COLLAPSED = new Set(["checks_section"]);
 const esc = (value) =>
   String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const clone = (value) => JSON.parse(JSON.stringify(value ?? null));
+// draw the picture turned clockwise like the integration does it (grown so nothing is cut off);
+// a smaller picture is enough, the crop is in percent
+const drawTurned = (canvas, img, deg, maxSize = 1600) => {
+  const scale = Math.min(1, maxSize / Math.max(img.naturalWidth, img.naturalHeight));
+  const w = img.naturalWidth * scale;
+  const h = img.naturalHeight * scale;
+  const rad = (deg * Math.PI) / 180;
+  const cos = Math.abs(Math.cos(rad));
+  const sin = Math.abs(Math.sin(rad));
+  const width = Math.round(w * cos + h * sin);
+  const height = Math.round(w * sin + h * cos);
+  if (canvas.width !== width) canvas.width = width;
+  if (canvas.height !== height) canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, width, height);
+  ctx.translate(width / 2, height / 2);
+  ctx.rotate(rad);
+  ctx.drawImage(img, -w / 2, -h / 2, w, h);
+};
 const domainsOf = (spec) => {
   const d = spec?.domain;
   return !d ? [] : Array.isArray(d) ? d : [d];
@@ -548,7 +577,7 @@ class ZaehlerAblesungPanel extends HTMLElement {
       e.originalImg = null;
       e.turned = null;
       const box = this.shadowRoot.querySelector(".crop-box");
-      if (box) box.outerHTML = this._cropHtml();
+      if (box && !e.live) box.outerHTML = this._cropHtml();
       this._turnPreview();
     } catch (err) {
       this._toast(err.message || String(err), true);
@@ -597,45 +626,113 @@ class ZaehlerAblesungPanel extends HTMLElement {
       if (e.turned?.deg === deg) return;
       let src = e.original;
       if (deg) {
-        const img = e.originalImg;
-        // a smaller preview is enough, the crop is in percent
-        const scale = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
-        const w = img.naturalWidth * scale;
-        const h = img.naturalHeight * scale;
-        const rad = (deg * Math.PI) / 180;
-        const cos = Math.abs(Math.cos(rad));
-        const sin = Math.abs(Math.sin(rad));
         const canvas = document.createElement("canvas");
-        canvas.width = Math.round(w * cos + h * sin);
-        canvas.height = Math.round(w * sin + h * cos);
-        const ctx = canvas.getContext("2d");
-        ctx.fillStyle = "#000";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(rad);
-        ctx.drawImage(img, -w / 2, -h / 2, w, h);
+        drawTurned(canvas, e.originalImg, deg);
         src = canvas.toDataURL("image/jpeg", 0.85);
       }
       e.turned = { deg, src };
-      const shown = this.shadowRoot.querySelector(".crop-wrap img");
+      const shown = this.shadowRoot.querySelector(".crop-wrap img.pic");
       if (shown) shown.src = src;
     });
+  }
+
+  // ------------------------------------------------------------------ live picture
+
+  _streamUrl() {
+    const camera = this._edit?.data?.camera;
+    const token = this._state(camera)?.attributes?.access_token;
+    return camera && token ? `/api/camera_proxy_stream/${encodeURIComponent(camera)}?token=${encodeURIComponent(token)}` : "";
+  }
+
+  _liveHtml() {
+    const ui = this.ui;
+    const e = this._edit;
+    if (!e.data.camera) return "";
+    const light = e.data.light
+      ? `<label class="live-light"><input type="checkbox" data-live-light ${e.liveLight ? "checked" : ""}>${esc(ui.liveLight)}</label>`
+      : "";
+    return `<div class="live-row">
+      <button class="btn ${e.live ? "primary" : ""}" data-action="live"><ha-icon icon="${e.live ? "mdi:stop" : "mdi:video"}"></ha-icon>${esc(e.live ? ui.liveStop : ui.live)}</button>
+      ${e.live ? light : ""}${e.live ? `<span class="msg small">${esc(ui.liveHint)}</span>` : ""}</div>`;
+  }
+
+  async _startLive() {
+    const e = this._edit;
+    if (!e || e.live) return;
+    e.live = true;
+    e.liveLight = !!e.data.light;
+    this._renderCrop();
+    await this._liveLightSwitch();
+    // the frames of the stream are drawn turned onto the canvas until the editor closes
+    this._liveTimer = setInterval(() => {
+      if (this._edit !== e || !e.live || !this.isConnected) {
+        this._stopLive(e);
+        return;
+      }
+      const src = this.shadowRoot.querySelector(".crop-wrap img.live-src");
+      const canvas = this.shadowRoot.querySelector(".crop-wrap canvas.pic");
+      if (src?.complete && src.naturalWidth && canvas) drawTurned(canvas, src, this._rotation(), 1280);
+    }, 150);
+  }
+
+  _stopLive(e = this._edit) {
+    clearInterval(this._liveTimer);
+    this._liveTimer = null;
+    // an empty source closes the stream
+    const src = this.shadowRoot.querySelector(".crop-wrap img.live-src");
+    if (src) src.src = "";
+    if (!e?.live) return;
+    e.live = false;
+    if (e.lightOn) this._call("light", "turn_off", { entity_id: e.lightOn });
+    e.lightOn = null;
+    if (this._edit === e) this._renderCrop();
+  }
+
+  async _liveLightSwitch() {
+    const e = this._edit;
+    if (!e) return;
+    const want = e.live && e.liveLight && e.data.light ? e.data.light : null;
+    if (e.lightOn && e.lightOn !== want) {
+      await this._call("light", "turn_off", { entity_id: e.lightOn });
+      e.lightOn = null;
+    }
+    if (want) {
+      const brightness = Number(e.data.light_brightness);
+      await this._call("light", "turn_on", { entity_id: want, ...(brightness > 0 ? { brightness_pct: brightness } : {}) });
+      e.lightOn = want;
+    }
+  }
+
+  _renderCrop() {
+    const box = this.shadowRoot.querySelector(".crop-box");
+    if (box) box.outerHTML = this._cropHtml();
+  }
+
+  disconnectedCallback() {
+    if (this._edit?.live) this._stopLive(this._edit);
   }
 
   _cropHtml() {
     const ui = this.ui;
     const e = this._edit;
-    if (!e.original) return `<div class="crop-box"><div class="muted small">${esc(e.id ? ui.cropNoImage : ui.previewHint)}</div></div>`;
+    const live = e.live ? this._streamUrl() : "";
+    if (!e.original && !live) {
+      return `<div class="crop-box">${this._liveHtml()}<div class="muted small">${esc(e.id ? ui.cropNoImage : ui.previewHint)}</div></div>`;
+    }
     const { l, t, r, b } = this._cropRect();
     const deg = this._rotation();
     const src = e.turned?.deg === deg ? e.turned.src : deg ? "" : e.original;
-    if (!src) this._turnPreview();
-    return `<div class="crop-box">
+    if (!src && !live) this._turnPreview();
+    const filter = `filter:${this._exposureFilter()}`;
+    const picture = live
+      ? `<canvas class="pic" style="${filter}"></canvas><img class="live-src" src="${esc(live)}" alt="">`
+      : `<img class="pic" src="${src}" alt="" draggable="false" style="${filter}">`;
+    return `<div class="crop-box">${this._liveHtml()}
       <div class="rotate-row"><span class="lbl">${esc(ui.rotate)}</span>
         <button class="btn" data-action="rotate-step" data-step="-90" title="-90°">↺ 90°</button>
         <input type="range" data-card-id="edit" data-k="rotate" data-type="number" min="-180" max="180" step="0.5" value="${deg}">
         <button class="btn" data-action="rotate-step" data-step="90" title="+90°">↻ 90°</button></div>
-      <div class="crop-wrap" data-crop="1"><img src="${src}" alt="" draggable="false" style="filter:${this._exposureFilter()}">
+      <div class="crop-wrap" data-crop="1">${picture}
         <div class="crop-rect" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"></div></div>
       <div class="actions"><span class="msg small">${esc(ui.cropHelp)}</span><button class="btn" data-action="crop-reset">${esc(ui.cropReset)}</button></div>
     </div>`;
@@ -814,6 +911,11 @@ class ZaehlerAblesungPanel extends HTMLElement {
 
   _onInput(ev, isChange = false) {
     const el = ev.target;
+    if (el.dataset.liveLight !== undefined && isChange && this._edit) {
+      this._edit.liveLight = el.checked;
+      this._liveLightSwitch();
+      return;
+    }
     const cardId = el.dataset.cardId;
     const key = el.dataset.k;
     if (!cardId || !key) return;
@@ -846,8 +948,12 @@ class ZaehlerAblesungPanel extends HTMLElement {
     }
     if (cardId === "edit" && key === "rotate" && value !== null) this._setRotation(value, el);
     if (cardId === "edit" && key === "exposure") {
-      const img = this.shadowRoot.querySelector(".crop-wrap img");
-      if (img) img.style.filter = this._exposureFilter();
+      const pic = this.shadowRoot.querySelector(".crop-wrap .pic");
+      if (pic) pic.style.filter = this._exposureFilter();
+    }
+    if (cardId === "edit" && this._edit.live && isChange) {
+      if (key === "camera") this._renderCrop();
+      if (["light", "light_brightness"].includes(key)) this._liveLightSwitch();
     }
     if (cardId === "edit" && key === "unit" && isChange) this._rerenderContent();
   }
@@ -961,6 +1067,10 @@ class ZaehlerAblesungPanel extends HTMLElement {
         break;
       case "crop-reset":
         this._setCrop(0, 0, 100, 100);
+        break;
+      case "live":
+        if (this._edit?.live) this._stopLive();
+        else await this._startLive();
         break;
       case "rotate-step": {
         const deg = ((((this._rotation() + Number(d.step)) % 360) + 540) % 360) - 180;
@@ -1207,7 +1317,10 @@ details .desc { margin-top:8px; }
 .rotate-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
 .rotate-row input[type=range] { flex:1; min-width:140px; }
 .crop-wrap { position:relative; display:inline-block; max-width:100%; touch-action:none; cursor:crosshair; user-select:none; line-height:0; }
-.crop-wrap img { max-width:100%; max-height:420px; border-radius:8px; display:block; pointer-events:none; }
+.crop-wrap img, .crop-wrap canvas { max-width:100%; max-height:420px; border-radius:8px; display:block; pointer-events:none; }
+.crop-wrap img.live-src { position:absolute; width:1px; height:1px; opacity:0; }
+.live-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.live-light { display:flex; align-items:center; gap:4px; }
 .crop-rect { position:absolute; border:2px solid var(--primary-color); box-shadow:0 0 0 9999px rgba(0,0,0,.45); border-radius:2px; pointer-events:none; }
 .crop-wrap { overflow:hidden; border-radius:8px; }
 textarea { font:inherit; color:var(--primary-text-color); background:var(--input-fill-color, var(--secondary-background-color, #f5f5f5)); border:1px solid var(--divider-color, #ccc); border-radius:8px; padding:8px 10px; width:100%; resize:vertical; }
