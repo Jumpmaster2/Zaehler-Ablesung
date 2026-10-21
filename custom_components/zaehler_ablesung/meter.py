@@ -62,7 +62,7 @@ from .const import (
     meter_values,
 )
 from .logic import reading as rd
-from .logic.image import needs_processing, process
+from .logic.image import needs_processing, process, thumbnail
 from .logic.prompt import build_instructions
 from .logic.units import rate_unit
 
@@ -284,16 +284,34 @@ class Meter:
             return path.read_bytes()
         return None
 
-    def _keep_rejected(self, stamp: str) -> None:
+    def _keep_rejected(self, stamp: str, status: str) -> None:
         """Copy the last picture of a rejected reading and keep only the newest ones."""
         source = self.folder / IMAGE_NAME
         if not source.exists():
             return
         target = self.folder / REJECTED_FOLDER
         target.mkdir(parents=True, exist_ok=True)
-        (target / f"{stamp}.jpg").write_bytes(source.read_bytes())
+        (target / f"{stamp}_{status}.jpg").write_bytes(source.read_bytes())
         for old in sorted(target.glob("*.jpg"))[:-REJECTED_KEEP]:
             old.unlink(missing_ok=True)
+
+    def load_rejected(self) -> list[dict[str, Any]]:
+        """Pictures of rejected readings, newest first, made small for the panel (executor)."""
+        folder = self.folder / REJECTED_FOLDER
+        if not folder.is_dir():
+            return []
+        result = []
+        for path in sorted(folder.glob("*.jpg"), reverse=True)[:REJECTED_KEEP]:
+            stamp, _, status = path.stem.partition("_")
+            result.append(
+                {
+                    "name": path.name,
+                    "stamp": stamp,
+                    "status": status or None,
+                    "image": thumbnail(path.read_bytes()),
+                }
+            )
+        return result
 
     def load_image(self) -> None:
         """Picture of the last run (executor); cropped again in case the crop changed."""
@@ -439,7 +457,7 @@ class Meter:
         )
         if status != rd.STATUS_OK:
             stamp = dt_util.as_local(now).strftime("%Y%m%d-%H%M%S")
-            await self.hass.async_add_executor_job(self._keep_rejected, stamp)
+            await self.hass.async_add_executor_job(self._keep_rejected, stamp, status)
             if self.manager.options.get(CONF_NOTIFY, DEFAULTS[CONF_NOTIFY]) and rd.should_notify(
                 status, state.failures
             ):

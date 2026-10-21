@@ -29,7 +29,7 @@ Alles wird im Dashboard **Zähler-Ablesung** in der Seitenleiste eingerichtet: Z
 
 * **Anstieg zu groß:** Steigt der Wert seit der letzten gültigen Ablesung um mehr als *größter Anstieg pro Stunde × Stunden* (mindestens eine halbe Stunde, ohne vorherigen Wert zwei Stunden), wird er verworfen.
 * **Kleiner als zuvor:** Ein kleinerer Wert wird nur übernommen, wenn er höchstens um die *größte Korrektur* kleiner ist und weitere Bilder (Standard 2) ihn alle bestätigen. Dann gilt er als "korrigiert" (eine frühere Fehllesung wird damit berichtigt).
-* Verworfene und korrigierte Ablesungen erzeugen eine Benachrichtigung in Home Assistant (abschaltbar). Bei "unlesbar" oder nicht erreichbarer Kamera/KI erst ab dem dritten Fehlschlag in Folge. Im Dashboard lässt sich ein verworfener, aber richtig gelesener Wert mit einem Klick übernehmen. Das Bild wird unter `verworfen/` aufbewahrt (die letzten 20).
+* Verworfene und korrigierte Ablesungen erzeugen eine Benachrichtigung in Home Assistant (abschaltbar). Bei "unlesbar" oder nicht erreichbarer Kamera/KI erst ab dem dritten Fehlschlag in Folge. Im Dashboard lässt sich ein verworfener, aber richtig gelesener Wert mit einem Klick übernehmen. Das Bild wird unter `verworfen/` aufbewahrt (die letzten 20) und ist im Dashboard auf der Zählerkarte unter **Verworfene Bilder** zu sehen.
 * Der Zählerstand-Sensor hat die Zustandsklasse `total` (nicht `total_increasing`), damit eine Korrektur nach unten in der Statistik nicht als Zählertausch zählt.
 
 ### Zeitplan

@@ -29,7 +29,7 @@ Everything is set up in the **Zähler-Ablesung** dashboard in the sidebar: add a
 
 * **Increase too large:** if the value rose by more than *largest increase per hour × hours* since the last valid reading (at least half an hour, two hours without a previous value), it is rejected.
 * **Smaller than before:** a smaller value is only taken when it is at most the *largest correction* lower and further pictures (default 2) all confirm it. It then counts as "corrected" (this fixes an earlier wrong reading).
-* Rejected and corrected readings create a notification in Home Assistant (can be turned off). For "unreadable" or an unreachable camera/AI only from the third failure in a row. In the dashboard a rejected but correctly read value can be taken with one click. The picture is kept in `verworfen/` (the latest 20).
+* Rejected and corrected readings create a notification in Home Assistant (can be turned off). For "unreadable" or an unreachable camera/AI only from the third failure in a row. In the dashboard a rejected but correctly read value can be taken with one click. The picture is kept in `verworfen/` (the latest 20) and shown in the dashboard on the meter card under **Rejected pictures**.
 * The meter reading sensor uses state class `total` (not `total_increasing`), so a correction downwards is not counted as a meter reset in the statistics.
 
 ### Schedule

@@ -110,3 +110,20 @@ def process(
     out = io.BytesIO()
     image.save(out, format="JPEG", quality=92)
     return out.getvalue()
+
+
+def thumbnail(content: bytes, size: int = 640) -> bytes:
+    """Smaller JPEG for an overview; the original when it is small or cannot be decoded."""
+    from PIL import Image, UnidentifiedImageError
+
+    try:
+        image = Image.open(io.BytesIO(content))
+        image.load()
+    except (UnidentifiedImageError, OSError):
+        return content
+    if max(image.size) <= size:
+        return content
+    image.thumbnail((size, size))
+    out = io.BytesIO()
+    image.convert("RGB").save(out, format="JPEG", quality=80)
+    return out.getvalue()

@@ -112,6 +112,9 @@ async def test_rate_and_plausibility(hass: HomeAssistant, base, ai, freezer) -> 
     rejected = meter.folder / "verworfen"
     files = await hass.async_add_executor_job(lambda: list(rejected.glob("*.jpg")))
     assert len(files) == 1
+    assert files[0].stem.endswith("_too_large")
+    pictures = await hass.async_add_executor_job(meter.load_rejected)
+    assert [p["status"] for p in pictures] == ["too_large"]
 
 
 async def test_majority_vote(hass: HomeAssistant, base, ai) -> None:
