@@ -6,7 +6,7 @@ import logging
 
 from homeassistant.const import Platform
 
-from .logic.image import rotation
+from .logic.image import crop_after_rotation, rotation
 from .logic.units import TYPE_DEFAULTS, TYPE_HEAT
 
 DOMAIN = "zaehler_ablesung"
@@ -106,7 +106,15 @@ def meter_defaults(meter_type: str) -> dict:
 
 
 def meter_values(data: dict) -> dict:
-    """Stored meter data with the defaults; the rotation of older versions as an angle."""
+    """Stored meter data with the defaults; older versions are converted.
+
+    They stored the rotation as text ("90") and turned the picture after cropping.
+    """
     values = {**meter_defaults(data.get(CONF_TYPE, TYPE_HEAT)), **data}
-    values[CONF_ROTATE] = rotation(values.get(CONF_ROTATE))
+    rotate = values.get(CONF_ROTATE)
+    if isinstance(rotate, str):
+        crop = (CONF_CROP_LEFT, CONF_CROP_TOP, CONF_CROP_RIGHT, CONF_CROP_BOTTOM)
+        turned = crop_after_rotation(*(float(values[k]) for k in crop), rotate)
+        values.update(zip(crop, turned, strict=True))
+    values[CONF_ROTATE] = rotation(rotate)
     return values

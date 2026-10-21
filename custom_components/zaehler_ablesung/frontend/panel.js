@@ -47,7 +47,8 @@ const UI = {
     previewLast: "Letztes Bild der Ablesung",
     previewHint: "Testbild nimmt ein Bild mit den gespeicherten Einstellungen auf. Erst speichern, dann ausprobieren.",
     prompt: "Anweisung an die KI anzeigen",
-    cropHelp: "Rahmen um die Anzeige ziehen (Maus oder Finger). Gespeichert wird mit „Speichern“, das nächste Bild ist dann zugeschnitten.",
+    cropHelp: "Erst das Bild gerade drehen, dann einen Rahmen um die Anzeige ziehen (Maus oder Finger). Gespeichert wird mit „Speichern“, das nächste Bild ist dann gedreht und zugeschnitten.",
+    rotate: "Drehen",
     cropNoImage: "Noch kein Bild. Erst speichern und ein Testbild aufnehmen.",
     cropReset: "Ganzes Bild",
     columns: { name: "Name", type: "Art", reading: "Zählerstand", status: "Status" },
@@ -99,7 +100,8 @@ const UI = {
     previewLast: "Last picture of a reading",
     previewHint: "Test picture takes a picture with the saved settings. Save first, then try it.",
     prompt: "Show the instructions for the AI",
-    cropHelp: "Draw a frame around the display (mouse or finger). Saved with “Save”, the next picture is then cropped.",
+    cropHelp: "First turn the picture straight, then draw a frame around the display (mouse or finger). Saved with “Save”, the next picture is then turned and cropped.",
+    rotate: "Rotate",
     cropNoImage: "No picture yet. Save first and take a test picture.",
     cropReset: "Whole picture",
     columns: { name: "Name", type: "Type", reading: "Meter reading", status: "Status" },
@@ -543,8 +545,11 @@ class ZaehlerAblesungPanel extends HTMLElement {
       const result = await this._ws({ type: `${DOMAIN}/original`, subentry_id: e.id });
       if (this._edit !== e) return;
       e.original = result.image ? `data:image/jpeg;base64,${result.image}` : null;
+      e.originalImg = null;
+      e.turned = null;
       const box = this.shadowRoot.querySelector(".crop-box");
       if (box) box.outerHTML = this._cropHtml();
+      this._turnPreview();
     } catch (err) {
       this._toast(err.message || String(err), true);
     }
@@ -566,16 +571,83 @@ class ZaehlerAblesungPanel extends HTMLElement {
     return Number.isFinite(v) && v > 0 ? `brightness(${v / 100})` : "none";
   }
 
+  _rotation() {
+    const v = Number(this._edit.data.rotate);
+    if (!Number.isFinite(v)) return 0;
+    const d = ((v % 360) + 360) % 360;
+    return d > 180 ? d - 360 : d;
+  }
+
+  // the picture turned like the integration does it (clockwise, grown so nothing is cut off);
+  // the crop is drawn on this one
+  _turnPreview() {
+    const e = this._edit;
+    if (!e?.original || this._turning) return;
+    this._turning = requestAnimationFrame(() => {
+      this._turning = null;
+      if (this._edit !== e) return;
+      if (!e.originalImg) {
+        e.originalImg = new Image();
+        e.originalImg.onload = () => this._turnPreview();
+        e.originalImg.src = e.original;
+        return;
+      }
+      if (!e.originalImg.complete || !e.originalImg.naturalWidth) return;
+      const deg = this._rotation();
+      if (e.turned?.deg === deg) return;
+      let src = e.original;
+      if (deg) {
+        const img = e.originalImg;
+        // a smaller preview is enough, the crop is in percent
+        const scale = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+        const w = img.naturalWidth * scale;
+        const h = img.naturalHeight * scale;
+        const rad = (deg * Math.PI) / 180;
+        const cos = Math.abs(Math.cos(rad));
+        const sin = Math.abs(Math.sin(rad));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(w * cos + h * sin);
+        canvas.height = Math.round(w * sin + h * cos);
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(rad);
+        ctx.drawImage(img, -w / 2, -h / 2, w, h);
+        src = canvas.toDataURL("image/jpeg", 0.85);
+      }
+      e.turned = { deg, src };
+      const shown = this.shadowRoot.querySelector(".crop-wrap img");
+      if (shown) shown.src = src;
+    });
+  }
+
   _cropHtml() {
     const ui = this.ui;
     const e = this._edit;
     if (!e.original) return `<div class="crop-box"><div class="muted small">${esc(e.id ? ui.cropNoImage : ui.previewHint)}</div></div>`;
     const { l, t, r, b } = this._cropRect();
+    const deg = this._rotation();
+    const src = e.turned?.deg === deg ? e.turned.src : deg ? "" : e.original;
+    if (!src) this._turnPreview();
     return `<div class="crop-box">
-      <div class="crop-wrap" data-crop="1"><img src="${e.original}" alt="" draggable="false" style="filter:${this._exposureFilter()}">
+      <div class="rotate-row"><span class="lbl">${esc(ui.rotate)}</span>
+        <button class="btn" data-action="rotate-step" data-step="-90" title="-90°">↺ 90°</button>
+        <input type="range" data-card-id="edit" data-k="rotate" data-type="number" min="-180" max="180" step="0.5" value="${deg}">
+        <button class="btn" data-action="rotate-step" data-step="90" title="+90°">↻ 90°</button></div>
+      <div class="crop-wrap" data-crop="1"><img src="${src}" alt="" draggable="false" style="filter:${this._exposureFilter()}">
         <div class="crop-rect" style="left:${l}%;top:${t}%;width:${r - l}%;height:${b - t}%"></div></div>
       <div class="actions"><span class="msg small">${esc(ui.cropHelp)}</span><button class="btn" data-action="crop-reset">${esc(ui.cropReset)}</button></div>
     </div>`;
+  }
+
+  _setRotation(deg, source) {
+    const e = this._edit;
+    e.data.rotate = deg;
+    for (const input of this.shadowRoot.querySelectorAll('input[data-card-id="edit"][data-k="rotate"]')) {
+      if (input !== source) input.value = deg;
+    }
+    this._turnPreview();
   }
 
   _setCrop(l, t, r, b) {
@@ -772,6 +844,7 @@ class ZaehlerAblesungPanel extends HTMLElement {
       const rect = this.shadowRoot.querySelector(".crop-rect");
       if (rect) Object.assign(rect.style, { left: `${l}%`, top: `${t}%`, width: `${r - l}%`, height: `${b - t}%` });
     }
+    if (cardId === "edit" && key === "rotate" && value !== null) this._setRotation(value, el);
     if (cardId === "edit" && key === "exposure") {
       const img = this.shadowRoot.querySelector(".crop-wrap img");
       if (img) img.style.filter = this._exposureFilter();
@@ -889,6 +962,11 @@ class ZaehlerAblesungPanel extends HTMLElement {
       case "crop-reset":
         this._setCrop(0, 0, 100, 100);
         break;
+      case "rotate-step": {
+        const deg = ((((this._rotation() + Number(d.step)) % 360) + 540) % 360) - 180;
+        this._setRotation(deg === -180 ? 180 : deg);
+        break;
+      }
       case "close-edit":
         this._edit = null;
         this._rerenderContent();
@@ -1126,6 +1204,8 @@ details .desc { margin-top:8px; }
 .preview .actions { margin-top:4px; }
 .field.wide { grid-column:1 / -1; }
 .crop-box { margin:8px 0; }
+.rotate-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.rotate-row input[type=range] { flex:1; min-width:140px; }
 .crop-wrap { position:relative; display:inline-block; max-width:100%; touch-action:none; cursor:crosshair; user-select:none; line-height:0; }
 .crop-wrap img { max-width:100%; max-height:420px; border-radius:8px; display:block; pointer-events:none; }
 .crop-rect { position:absolute; border:2px solid var(--primary-color); box-shadow:0 0 0 9999px rgba(0,0,0,.45); border-radius:2px; pointer-events:none; }

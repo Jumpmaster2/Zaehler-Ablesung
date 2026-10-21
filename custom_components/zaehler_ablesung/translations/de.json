@@ -84,11 +84,11 @@
                 "exposure": "Belichtung"
               },
               "data_description": {
-                "crop_left": "Linker Rand des Ausschnitts in Prozent der Bildbreite.",
-                "crop_top": "Oberer Rand des Ausschnitts in Prozent der Bildhöhe.",
-                "crop_right": "Rechter Rand des Ausschnitts in Prozent der Bildbreite.",
-                "crop_bottom": "Unterer Rand des Ausschnitts in Prozent der Bildhöhe.",
-                "rotate": "Dreht das Bild im Uhrzeigersinn um diesen Winkel (negativ: gegen den Uhrzeigersinn), z. B. 90 für eine seitlich montierte Kamera oder ein paar Grad für eine schief sitzende Anzeige. Gedreht wird nach dem Zuschneiden.",
+                "crop_left": "Linker Rand des Ausschnitts in Prozent der Breite des gedrehten Bildes.",
+                "crop_top": "Oberer Rand des Ausschnitts in Prozent der Höhe des gedrehten Bildes.",
+                "crop_right": "Rechter Rand des Ausschnitts in Prozent der Breite des gedrehten Bildes.",
+                "crop_bottom": "Unterer Rand des Ausschnitts in Prozent der Höhe des gedrehten Bildes.",
+                "rotate": "Dreht das Bild im Uhrzeigersinn um diesen Winkel (negativ: gegen den Uhrzeigersinn), z. B. 90 für eine seitlich montierte Kamera oder ein paar Grad für eine schief sitzende Anzeige. Gedreht wird vor dem Zuschneiden, der Ausschnitt bezieht sich auf das gedrehte Bild.",
                 "exposure": "Helligkeit des Bildes für die KI: 100 % lässt es unverändert, darunter dunkler (gegen Spiegelungen und Überbelichtung), darüber heller."
               }
             },
@@ -177,11 +177,11 @@
                 "exposure": "Belichtung"
               },
               "data_description": {
-                "crop_left": "Linker Rand des Ausschnitts in Prozent der Bildbreite.",
-                "crop_top": "Oberer Rand des Ausschnitts in Prozent der Bildhöhe.",
-                "crop_right": "Rechter Rand des Ausschnitts in Prozent der Bildbreite.",
-                "crop_bottom": "Unterer Rand des Ausschnitts in Prozent der Bildhöhe.",
-                "rotate": "Dreht das Bild im Uhrzeigersinn um diesen Winkel (negativ: gegen den Uhrzeigersinn), z. B. 90 für eine seitlich montierte Kamera oder ein paar Grad für eine schief sitzende Anzeige. Gedreht wird nach dem Zuschneiden.",
+                "crop_left": "Linker Rand des Ausschnitts in Prozent der Breite des gedrehten Bildes.",
+                "crop_top": "Oberer Rand des Ausschnitts in Prozent der Höhe des gedrehten Bildes.",
+                "crop_right": "Rechter Rand des Ausschnitts in Prozent der Breite des gedrehten Bildes.",
+                "crop_bottom": "Unterer Rand des Ausschnitts in Prozent der Höhe des gedrehten Bildes.",
+                "rotate": "Dreht das Bild im Uhrzeigersinn um diesen Winkel (negativ: gegen den Uhrzeigersinn), z. B. 90 für eine seitlich montierte Kamera oder ein paar Grad für eine schief sitzende Anzeige. Gedreht wird vor dem Zuschneiden, der Ausschnitt bezieht sich auf das gedrehte Bild.",
                 "exposure": "Helligkeit des Bildes für die KI: 100 % lässt es unverändert, darunter dunkler (gegen Spiegelungen und Überbelichtung), darüber heller."
               }
             },

@@ -1,4 +1,4 @@
-"""Crop, rotate and brighten the camera picture so the AI only sees the display."""
+"""Rotate, crop and brighten the camera picture so the AI only sees the display."""
 
 from __future__ import annotations
 
@@ -18,6 +18,20 @@ def rotation(value: str | float | None) -> float:
     if degrees > MAX_ROTATION:
         degrees -= 360
     return degrees
+
+
+def crop_after_rotation(
+    left: float, top: float, right: float, bottom: float, rotate: str | float
+) -> tuple[float, float, float, float]:
+    """Crop of older versions (cropped, then turned by a right angle) for the turned picture."""
+    degrees = rotation(rotate)
+    if degrees == 90:
+        return 100 - bottom, left, 100 - top, right
+    if degrees == 180:
+        return 100 - right, 100 - bottom, 100 - left, 100 - top
+    if degrees == -90:
+        return top, 100 - right, bottom, 100 - left
+    return left, top, right, bottom
 
 
 def crop_box(
@@ -62,7 +76,7 @@ def process(
     rotate: str | float = 0,
     exposure: float = 100,
 ) -> bytes:
-    """Cropped, rotated and brightened JPEG; the original when nothing is to do or it cannot be decoded."""
+    """Rotated, cropped and brightened JPEG; the original when nothing is to do or it cannot be decoded."""
     if not needs_processing(left, top, right, bottom, rotate, exposure):
         return content
     from PIL import Image, ImageEnhance, UnidentifiedImageError
@@ -73,9 +87,7 @@ def process(
     except (UnidentifiedImageError, OSError):
         return content
     image = image.convert("RGB")
-    box = crop_box(image.width, image.height, left, top, right, bottom)
-    if box:
-        image = image.crop(box)
+    # rotate first, so the crop is drawn on the straight picture
     degrees = rotation(rotate)
     if degrees:
         # clockwise like a camera that is mounted turned to the right; right angles stay sharp
@@ -88,6 +100,9 @@ def process(
             image = image.transpose(transpose)
         else:
             image = image.rotate(-degrees, resample=Image.Resampling.BICUBIC, expand=True)
+    box = crop_box(image.width, image.height, left, top, right, bottom)
+    if box:
+        image = image.crop(box)
     low, high = EXPOSURE_RANGE
     factor = max(low, min(high, float(exposure))) / 100
     if factor != 1:
