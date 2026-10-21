@@ -43,6 +43,7 @@ from .const import (
     CONF_MAX_RATE,
     CONF_METER_AI_TASK,
     CONF_NOTIFY,
+    CONF_PROMPT,
     CONF_ROTATE,
     CONF_TYPE,
     CONF_UNIT,
@@ -63,7 +64,7 @@ from .const import (
 )
 from .logic import reading as rd
 from .logic.image import needs_processing, process, thumbnail
-from .logic.prompt import build_instructions
+from .logic.prompt import effective_instructions
 from .logic.units import rate_unit
 
 type MeterConfigEntry = ConfigEntry[MeterManager]
@@ -332,7 +333,8 @@ class Meter:
         if not entity_id:
             LOGGER.warning("%s: no AI task entity configured", self.title)
             return rd.ERROR
-        instructions = build_instructions(
+        instructions = effective_instructions(
+            self.opt(CONF_PROMPT),
             self.opt(CONF_TYPE),
             self.unit,
             self.decimals,

@@ -100,6 +100,16 @@ async def test_options_and_prompt(hass: HomeAssistant, base, hass_ws_client) -> 
     )
     assert "MWh" in msg["result"]["instructions"]
     assert "Frame line." in msg["result"]["instructions"]
+    assert msg["result"]["standard"] == msg["result"]["instructions"]
+
+    # own instructions replace the generated ones; the generated stay available as template
+    msg = await _send(
+        client,
+        type=f"{DOMAIN}/prompt",
+        data={"meter_type": "heat", "unit": "MWh", "decimals": 3, "prompt": "  Lies den Zähler.  "},
+    )
+    assert msg["result"]["instructions"] == "Lies den Zähler."
+    assert "MWh" in msg["result"]["standard"]
 
 
 async def test_rejected_pictures(hass: HomeAssistant, base, hass_ws_client) -> None:

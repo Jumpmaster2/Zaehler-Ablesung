@@ -94,6 +94,20 @@ def default_hints(meter_type: str, lang: str | None) -> str:
     return DEFAULT_HINTS[language(lang)].get(meter_type, "")
 
 
+def effective_instructions(
+    custom: str | None,
+    meter_type: str,
+    unit: str,
+    decimals: int,
+    hints: str | None,
+    lang: str | None,
+) -> str:
+    """The own instructions of a meter when set, otherwise the generated ones."""
+    if custom and custom.strip():
+        return custom.strip()
+    return build_instructions(meter_type, unit, decimals, hints, lang)
+
+
 def build_instructions(
     meter_type: str, unit: str, decimals: int, hints: str | None, lang: str | None
 ) -> str:

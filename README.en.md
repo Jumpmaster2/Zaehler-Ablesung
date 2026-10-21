@@ -6,7 +6,7 @@ Custom integration for Home Assistant that reads meters (heat, water, gas, elect
 
 Everything is set up in the **Zähler-Ablesung** dashboard in the sidebar: add a meter, choose camera and light, try the brightness with a test picture, set interval and checks. No automations, scripts or helpers needed.
 
-> Status: version 0.3.0.
+> Status: version 0.4.0.
 
 ## How it works
 
@@ -20,7 +20,8 @@ Everything is set up in the **Zähler-Ablesung** dashboard in the sidebar: add a
 
 ### Reading with a majority vote
 
-* The AI gets the picture and instructions built from meter type, unit, decimals and your **hints** (see "Show the instructions for the AI" in the editor). It answers only with the number or with "unreadable".
+* The AI gets the picture and instructions built from meter type, unit, decimals and your **hints** (see "Instructions for the AI" in the editor). It answers only with the number or with "unreadable".
+* **Edit** lets you change the whole instructions freely, starting from the generated ones. Own instructions then replace the generated ones completely; unit, decimals and hints are no longer inserted. **Restore standard** goes back to the generated instructions.
 * Pictures are read until one value was read **twice**, at most the configured number of pictures (default 4). Without such a value the reading is "unreadable".
 * The very first value of a meter is also confirmed by further pictures (default 2), as there is nothing yet to compare it with. A wrong first value (e.g. without the decimal point) would otherwise make every later correct value be rejected as "smaller".
 * If the answer of the AI holds only a unit or a label besides the number ("1234,5 m³", "Reading: 1234.5"), the number counts.

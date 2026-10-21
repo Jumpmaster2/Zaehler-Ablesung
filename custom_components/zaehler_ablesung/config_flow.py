@@ -52,6 +52,7 @@ from .const import (
     CONF_METER_AI_TASK,
     CONF_NAME,
     CONF_NOTIFY,
+    CONF_PROMPT,
     CONF_ROTATE,
     CONF_TYPE,
     CONF_UNIT,
@@ -193,6 +194,7 @@ def meter_sections(v: dict[str, Any]) -> dict[str, vol.Schema]:
                 ),
                 req(CONF_DECIMALS): _number(0, 6, 1),
                 _opt(CONF_HINTS, v): TextSelector(TextSelectorConfig(multiline=True)),
+                _opt(CONF_PROMPT, v): TextSelector(TextSelectorConfig(multiline=True)),
             }
         ),
         SECTION_SCHEDULE: vol.Schema(

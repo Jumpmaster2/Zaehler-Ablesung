@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from logic.prompt import build_instructions, default_hints, example
+from logic.prompt import build_instructions, default_hints, effective_instructions, example
 from logic.units import rate_unit
 
 
@@ -38,3 +38,10 @@ def test_rate_units() -> None:
     assert rate_unit("m³") == ("L/h", 1000.0)
     assert rate_unit("L") == ("L/h", 1.0)
     assert rate_unit("Stück") == ("Stück/h", 1.0)
+
+
+def test_effective_instructions() -> None:
+    standard = build_instructions("water", "m³", 3, "Red digits.", "de")
+    assert effective_instructions(None, "water", "m³", 3, "Red digits.", "de") == standard
+    assert effective_instructions("  ", "water", "m³", 3, "Red digits.", "de") == standard
+    assert effective_instructions(" Eigener Text \n", "water", "m³", 3, "", "de") == "Eigener Text"
