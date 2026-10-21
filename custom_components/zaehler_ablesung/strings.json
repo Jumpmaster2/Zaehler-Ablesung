@@ -98,12 +98,14 @@
               "data": {
                 "unit": "Unit",
                 "decimals": "Decimals",
-                "hints": "Hints for the AI"
+                "hints": "Hints for the AI",
+                "prompt": "Own instructions for the AI"
               },
               "data_description": {
                 "unit": "Unit shown on the display (e.g. MWh, kWh or m³).",
                 "decimals": "Number of decimals shown on the display.",
-                "hints": "Optional. What is special about this display, e.g. lines that are not part of a digit, or which digits to ignore."
+                "hints": "Optional. What is special about this display, e.g. lines that are not part of a digit, or which digits to ignore.",
+                "prompt": "Replace the whole generated instructions (leave empty for the standard). Unit, decimals and hints are then no longer inserted. The AI should still answer only with the number or “unreadable”."
               }
             },
             "schedule_section": {
@@ -191,12 +193,14 @@
               "data": {
                 "unit": "Unit",
                 "decimals": "Decimals",
-                "hints": "Hints for the AI"
+                "hints": "Hints for the AI",
+                "prompt": "Own instructions for the AI"
               },
               "data_description": {
                 "unit": "Unit shown on the display (e.g. MWh, kWh or m³).",
                 "decimals": "Number of decimals shown on the display.",
-                "hints": "Optional. What is special about this display, e.g. lines that are not part of a digit, or which digits to ignore."
+                "hints": "Optional. What is special about this display, e.g. lines that are not part of a digit, or which digits to ignore.",
+                "prompt": "Replace the whole generated instructions (leave empty for the standard). Unit, decimals and hints are then no longer inserted. The AI should still answer only with the number or “unreadable”."
               }
             },
             "schedule_section": {

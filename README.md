@@ -20,7 +20,8 @@ Alles wird im Dashboard **Zähler-Ablesung** in der Seitenleiste eingerichtet: Z
 
 ### Ablesen mit Mehrheitsentscheid
 
-* Die KI bekommt das Bild und eine Anweisung, die sich aus Zählerart, Einheit, Nachkommastellen und deinen **Hinweisen** zusammensetzt (im Editor unter "Anweisung an die KI anzeigen" einsehbar). Sie antwortet nur mit der Zahl oder mit "unlesbar".
+* Die KI bekommt das Bild und eine Anweisung, die sich aus Zählerart, Einheit, Nachkommastellen und deinen **Hinweisen** zusammensetzt (im Editor unter "Anweisung an die KI" einsehbar). Sie antwortet nur mit der Zahl oder mit "unlesbar".
+* Mit **Bearbeiten** lässt sich die ganze Anweisung frei ändern; die automatisch erzeugte dient als Vorlage. Eine eigene Anweisung ersetzt dann die erzeugte vollständig, Einheit, Nachkommastellen und Hinweise werden nicht mehr eingesetzt. **Standard wiederherstellen** kehrt zur erzeugten Anweisung zurück.
 * Es werden so lange Bilder gelesen, bis ein Wert **zweimal gleich** gelesen wurde, höchstens die eingestellte Zahl an Bildern (Standard 4). Gibt es keinen solchen Wert, ist die Ablesung "unlesbar".
 * Der allererste Wert eines Zählers wird zusätzlich durch weitere Bilder (Standard 2) bestätigt, weil es noch nichts gibt, womit er sich vergleichen ließe. Ein falsch gelesener Erstwert (z. B. ohne Komma) würde sonst alle späteren richtigen Werte als "kleiner" verwerfen lassen.
 * Steht in der Antwort der KI außer der Zahl nur eine Einheit oder eine Bezeichnung ("1234,5 m³", "Zählerstand: 1234.5"), zählt die Zahl.

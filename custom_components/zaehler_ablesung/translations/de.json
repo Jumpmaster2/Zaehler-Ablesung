@@ -98,12 +98,14 @@
               "data": {
                 "unit": "Einheit",
                 "decimals": "Nachkommastellen",
-                "hints": "Hinweise für die KI"
+                "hints": "Hinweise für die KI",
+                "prompt": "Eigene Anweisung an die KI"
               },
               "data_description": {
                 "unit": "Einheit auf der Anzeige (z. B. MWh, kWh oder m³).",
                 "decimals": "Anzahl der Nachkommastellen auf der Anzeige.",
-                "hints": "Optional. Was an dieser Anzeige besonders ist, z. B. Linien, die zu keiner Ziffer gehören, oder welche Ziffern nicht mitgelesen werden."
+                "hints": "Optional. Was an dieser Anzeige besonders ist, z. B. Linien, die zu keiner Ziffer gehören, oder welche Ziffern nicht mitgelesen werden.",
+                "prompt": "Ersetzt die ganze automatisch erzeugte Anweisung (leer lassen für den Standard). Einheit, Nachkommastellen und Hinweise werden dann nicht mehr eingesetzt. Die KI soll weiterhin nur die Zahl oder „unlesbar“ antworten."
               }
             },
             "schedule_section": {
@@ -191,12 +193,14 @@
               "data": {
                 "unit": "Einheit",
                 "decimals": "Nachkommastellen",
-                "hints": "Hinweise für die KI"
+                "hints": "Hinweise für die KI",
+                "prompt": "Eigene Anweisung an die KI"
               },
               "data_description": {
                 "unit": "Einheit auf der Anzeige (z. B. MWh, kWh oder m³).",
                 "decimals": "Anzahl der Nachkommastellen auf der Anzeige.",
-                "hints": "Optional. Was an dieser Anzeige besonders ist, z. B. Linien, die zu keiner Ziffer gehören, oder welche Ziffern nicht mitgelesen werden."
+                "hints": "Optional. Was an dieser Anzeige besonders ist, z. B. Linien, die zu keiner Ziffer gehören, oder welche Ziffern nicht mitgelesen werden.",
+                "prompt": "Ersetzt die ganze automatisch erzeugte Anweisung (leer lassen für den Standard). Einheit, Nachkommastellen und Hinweise werden dann nicht mehr eingesetzt. Die KI soll weiterhin nur die Zahl oder „unlesbar“ antworten."
               }
             },
             "schedule_section": {

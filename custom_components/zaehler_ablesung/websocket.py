@@ -18,6 +18,7 @@ from .config_flow import _main_schema, clean_meter, meter_sections, validate_met
 from .const import (
     CONF_HINTS,
     CONF_NAME,
+    CONF_PROMPT,
     CONF_TYPE,
     CONF_UNIT,
     DEFAULTS,
@@ -359,17 +360,18 @@ async def ws_rejected(
 @websocket_api.require_admin
 @callback
 def ws_prompt(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict) -> None:
-    """Instructions the AI gets for these (unsaved) settings."""
+    """Instructions the AI gets for these (unsaved) settings, and the generated ones."""
     data = msg["data"]
     try:
         decimals = int(data.get("decimals") or 0)
     except (TypeError, ValueError):
         decimals = 0
-    text = build_instructions(
+    standard = build_instructions(
         str(data.get(CONF_TYPE) or "other"),
         str(data.get(CONF_UNIT) or ""),
         decimals,
         str(data.get(CONF_HINTS) or ""),
         hass.config.language,
     )
-    connection.send_result(msg["id"], {"instructions": text})
+    custom = str(data.get(CONF_PROMPT) or "").strip()
+    connection.send_result(msg["id"], {"instructions": custom or standard, "standard": standard})

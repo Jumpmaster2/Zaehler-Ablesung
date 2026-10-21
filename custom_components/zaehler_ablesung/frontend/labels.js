@@ -74,6 +74,10 @@ export const LABELS = {
     "Hinweise für die KI",
     "Optional. Was an dieser Anzeige besonders ist, z. B. Linien, die zu keiner Ziffer gehören, oder welche Ziffern nicht mitgelesen werden."
    ],
+   "prompt": [
+    "Eigene Anweisung an die KI",
+    "Ersetzt die ganze automatisch erzeugte Anweisung (leer lassen für den Standard). Einheit, Nachkommastellen und Hinweise werden dann nicht mehr eingesetzt. Die KI soll weiterhin nur die Zahl oder „unlesbar“ antworten."
+   ],
    "interval": [
     "Intervall",
     "Zeit zwischen zwei automatischen Ablesungen."
@@ -236,6 +240,10 @@ export const LABELS = {
    "hints": [
     "Hints for the AI",
     "Optional. What is special about this display, e.g. lines that are not part of a digit, or which digits to ignore."
+   ],
+   "prompt": [
+    "Own instructions for the AI",
+    "Replace the whole generated instructions (leave empty for the standard). Unit, decimals and hints are then no longer inserted. The AI should still answer only with the number or “unreadable”."
    ],
    "interval": [
     "Interval",

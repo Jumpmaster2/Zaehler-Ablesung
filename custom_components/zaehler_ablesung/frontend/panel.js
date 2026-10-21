@@ -52,7 +52,13 @@ const UI = {
     confirmTake: "Den gelesenen Wert {value} als Zählerstand übernehmen? Spätere Ablesungen werden gegen diesen Wert geprüft.",
     confirmDiscard: "Die Änderungen an diesem Zähler sind nicht gespeichert. Trotzdem verlassen?",
     previewHint: "Testbild nimmt ein Bild mit den gespeicherten Einstellungen auf. Erst speichern, dann ausprobieren.",
-    prompt: "Anweisung an die KI anzeigen",
+    prompt: "Anweisung an die KI",
+    promptOwn: "eigene",
+    promptStandard: "Wird automatisch aus Zählerart, Einheit, Nachkommastellen und Hinweisen erzeugt. Mit „Bearbeiten“ lässt sich die ganze Anweisung frei ändern.",
+    promptCustom: "Eigene Anweisung: Die KI bekommt genau diesen Text. Einheit, Nachkommastellen und Hinweise werden nicht mehr eingesetzt. Die KI soll weiterhin nur die Zahl oder „unlesbar“ antworten.",
+    promptEdit: "Bearbeiten",
+    promptReset: "Standard wiederherstellen",
+    confirmPromptReset: "Die eigene Anweisung verwerfen und wieder die automatisch erzeugte verwenden?",
     cropHelp: "Erst das Bild gerade drehen, dann einen Rahmen um die Anzeige ziehen (Maus oder Finger); den Rahmen verschieben oder an den Ecken anpassen. Gespeichert wird mit „Speichern“, das nächste Bild ist dann gedreht und zugeschnitten.",
     rotate: "Drehen",
     cropNoImage: "Noch kein Bild. Erst speichern und ein Testbild aufnehmen, oder das Livebild ansehen.",
@@ -115,7 +121,13 @@ const UI = {
     confirmTake: "Take the read value {value} as the meter reading? Later readings are checked against this value.",
     confirmDiscard: "The changes to this meter are not saved. Leave anyway?",
     previewHint: "Test picture takes a picture with the saved settings. Save first, then try it.",
-    prompt: "Show the instructions for the AI",
+    prompt: "Instructions for the AI",
+    promptOwn: "own",
+    promptStandard: "Generated from meter type, unit, decimals and hints. “Edit” lets you change the whole instructions freely.",
+    promptCustom: "Own instructions: the AI gets exactly this text. Unit, decimals and hints are no longer inserted. The AI should still answer only with the number or “unreadable”.",
+    promptEdit: "Edit",
+    promptReset: "Restore standard",
+    confirmPromptReset: "Discard the own instructions and use the generated ones again?",
     cropHelp: "First turn the picture straight, then draw a frame around the display (mouse or finger); move the frame or adjust it at the corners. Saved with “Save”, the next picture is then turned and cropped.",
     rotate: "Rotate",
     cropNoImage: "No picture yet. Save first and take a test picture, or watch the live picture.",
@@ -895,7 +907,10 @@ class ZaehlerAblesungPanel extends HTMLElement {
     const groups = this._cfg.meter_sections
       .map(({ id, fields }) => {
         const [name, desc] = this.labels.sections[id] || [id, ""];
-        const html = Object.entries(fields).map(([key, spec]) => this._field("edit", key, spec, e.data[key])).join("");
+        const html = Object.entries(fields)
+          .filter(([key]) => key !== "prompt")
+          .map(([key, spec]) => this._field("edit", key, spec, e.data[key]))
+          .join("");
         const crop = id === "image_section" ? this._cropHtml() : "";
         const body = `${desc ? `<p class="desc">${esc(desc)}</p>` : ""}${crop}<div class="fields">${html}</div>`;
         if (!COLLAPSED.has(id)) return `<h3>${esc(name)}</h3>${body}`;
@@ -910,7 +925,7 @@ class ZaehlerAblesungPanel extends HTMLElement {
         <div class="preview">${this._previewHtml()}</div>
       </div>
       ${groups}
-      <details class="prompt-box" ${e.prompt ? "open" : ""} data-action="prompt"><summary>${esc(ui.prompt)}</summary><pre class="prompt">${esc(e.prompt || "…")}</pre></details>
+      <details class="prompt-box" ${e.prompt || this._customPrompt() ? "open" : ""} data-action="prompt"><summary>${esc(ui.prompt)}</summary><div class="prompt-body">${this._promptHtml()}</div></details>
       <div class="actions"><span class="msg"></span>
         ${e.id ? `<button class="btn danger" data-action="delete-meter">${esc(ui.delete)}</button>` : ""}
         <span class="grow"></span>
@@ -1119,13 +1134,37 @@ class ZaehlerAblesungPanel extends HTMLElement {
     return confirm(this.ui.confirmDiscard);
   }
 
+  _customPrompt() {
+    const text = this._edit?.data?.prompt;
+    return typeof text === "string" && text.trim() !== "";
+  }
+
+  // the generated instructions as text, or the own ones in a text field
+  _promptHtml() {
+    const ui = this.ui;
+    const e = this._edit;
+    if (this._customPrompt() || e.promptEditing) {
+      return `<p class="desc"><span class="pill warn">${esc(ui.promptOwn)}</span> ${esc(ui.promptCustom)}</p>
+        <textarea class="prompt-edit" rows="14" data-card-id="edit" data-k="prompt" data-type="text">${esc(e.data.prompt || "")}</textarea>
+        <div class="actions"><button class="btn" data-action="prompt-reset">${esc(ui.promptReset)}</button></div>`;
+    }
+    return `<p class="desc">${esc(ui.promptStandard)}</p><pre class="prompt">${esc(e.prompt || "…")}</pre>
+      <div class="actions"><button class="btn" data-action="prompt-edit" ${e.prompt ? "" : "disabled"}><ha-icon icon="mdi:pencil-outline"></ha-icon>${esc(ui.promptEdit)}</button></div>`;
+  }
+
+  _renderPrompt() {
+    const body = this.shadowRoot.querySelector(".prompt-box .prompt-body");
+    if (body) body.innerHTML = this._promptHtml();
+  }
+
   async _showPrompt(details) {
     if (!details.open || this._edit.prompt) return;
+    const e = this._edit;
     try {
-      const result = await this._ws({ type: `${DOMAIN}/prompt`, data: { ...this._edit.data } });
-      this._edit.prompt = result.instructions;
-      const pre = details.querySelector(".prompt");
-      if (pre) pre.textContent = result.instructions;
+      const result = await this._ws({ type: `${DOMAIN}/prompt`, data: { ...e.data } });
+      if (this._edit !== e) return;
+      e.prompt = result.standard;
+      if (!this._customPrompt()) this._renderPrompt();
     } catch (err) {
       this._toast(err.message || String(err), true);
     }
@@ -1210,6 +1249,25 @@ class ZaehlerAblesungPanel extends HTMLElement {
       }
       case "zoom-close":
         el.hidden = true;
+        break;
+      case "prompt-edit": {
+        const e = this._edit;
+        if (!e?.prompt) break;
+        e.data.prompt = e.prompt;
+        e.promptEditing = true;
+        this._renderPrompt();
+        this.shadowRoot.querySelector(".prompt-edit")?.focus();
+        break;
+      }
+      case "prompt-reset":
+        if (!this._customPrompt() || confirm(this.ui.confirmPromptReset)) {
+          this._edit.data.prompt = "";
+          this._edit.promptEditing = false;
+          this._renderPrompt();
+          // the generated text may not be loaded yet
+          const details = this.shadowRoot.querySelector(".prompt-box");
+          if (details) this._showPrompt(details);
+        }
         break;
       case "crop-reset":
         this._setCrop(0, 0, 100, 100);
@@ -1310,6 +1368,7 @@ class ZaehlerAblesungPanel extends HTMLElement {
         if (meter) e.data = clone(meter.data);
         e.saved = this._editSnapshot();
         e.prompt = null;
+        e.promptEditing = this._customPrompt();
         this._rerenderContent();
         this._loadOriginal();
       }
@@ -1464,6 +1523,8 @@ details .desc { margin-top:8px; }
 .crop-rect { position:absolute; border:2px solid var(--primary-color); box-shadow:0 0 0 9999px rgba(0,0,0,.45); border-radius:2px; pointer-events:none; }
 textarea { font:inherit; color:var(--primary-text-color); background:var(--input-fill-color, var(--secondary-background-color, #f5f5f5)); border:1px solid var(--divider-color, #ccc); border-radius:8px; padding:8px 10px; width:100%; resize:vertical; }
 textarea:focus { outline:2px solid var(--primary-color); outline-offset:-1px; }
+textarea.prompt-edit { font-family:var(--code-font-family, monospace); font-size:13px; }
+.prompt-body .desc { margin-top:8px; }
 pre.prompt { white-space:pre-wrap; font-size:13px; background:var(--secondary-background-color, #f5f5f5); border-radius:8px; padding:10px; margin:8px 0 0; }
 th.c-reading { width:150px; }
 @media (max-width: 700px) {

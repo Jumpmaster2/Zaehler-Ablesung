@@ -311,3 +311,12 @@ async def test_crop(hass: HomeAssistant, base, ai, hass_ws_client) -> None:
     await client.send_json_auto_id({"type": f"{DOMAIN}/original", "subentry_id": meter.id})
     msg = await client.receive_json()
     assert base64.b64decode(msg["result"]["image"]) == jpeg
+
+
+async def test_own_instructions(hass: HomeAssistant, base, ai) -> None:
+    heat = {**HEAT_METER, "prompt": "Read the display. Answer only with the number."}
+    entry = await setup_entry(hass, meters=[("Heat", heat)])
+    meter = _manual(entry)
+    ai.answers = ["1.261"] * 4
+    await meter.async_read()
+    assert ai.calls[0]["instructions"] == "Read the display. Answer only with the number."
