@@ -33,6 +33,8 @@ def test_needs_processing() -> None:
     assert needs_processing(0, 0, 100, 100, 2.5)
     assert needs_processing(0, 0, 100, 100, 0, 120)
     assert not needs_processing(0, 0, 100, 100, "0", 100)
+    assert needs_processing(0, 0, 100, 100, 0, 100, True)
+    assert not needs_processing(0, 0, 100, 100, 0, 100, False)
 
 
 def test_rotation() -> None:
@@ -65,6 +67,36 @@ def test_process() -> None:
     assert darker.getpixel((500, 400))[0] < red < brighter.getpixel((500, 400))[0]
     # not a picture: unchanged
     assert process(b"no jpeg", 10, 10, 50, 50) == b"no jpeg"
+
+
+def _spot_lit_display() -> Image.Image:
+    """Display lit by a light on the left: bright there, dark on the right, with a dark
+    segment in each half."""
+    image = Image.new("L", (800, 300))
+    image.putdata([max(0, 240 - x * 220 // 800) for _ in range(300) for x in range(800)])
+    for x in (150, 600):
+        segment = image.crop((x, 100, x + 20, 200)).point(lambda v: v * 6 // 10)
+        image.paste(segment, (x, 100))
+    return image.convert("RGB")
+
+
+def test_enhance_evens_out_the_light() -> None:
+    source = _spot_lit_display()
+    result = Image.open(io.BytesIO(process(_png(source), enhance=True)))
+    assert result.size == source.size
+    # grey picture
+    r, g, b = result.getpixel((400, 50))
+    assert r == g == b
+
+    def contrast(image: Image.Image, x: int) -> int:
+        return image.getpixel((x - 30, 150))[0] - image.getpixel((x + 10, 150))[0]
+
+    # before: the segment in the dark half stands out much less than the one in the light
+    assert contrast(source, 600) < contrast(source, 150) / 2
+    # after: both stand out about the same and clearly
+    left, right = contrast(result, 150), contrast(result, 600)
+    assert left > 60 and right > 60
+    assert abs(left - right) < max(left, right) / 3
 
 
 def _quarters() -> Image.Image:

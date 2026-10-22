@@ -24,6 +24,7 @@ def test_meter_values_converts_old_rotation() -> None:
         values["crop_bottom"],
     ) == (10, 10, 80, 70)
     assert values["exposure"] == 100
+    assert values["enhance"] is False
     # new data stays as it is
     new = {**old, "rotate": -3.5}
     values = meter_values(new)

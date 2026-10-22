@@ -33,6 +33,7 @@ from .const import (
     CONF_CROP_TOP,
     CONF_DECIMALS,
     CONF_DISCARD,
+    CONF_ENHANCE,
     CONF_EXPOSURE,
     CONF_HINTS,
     CONF_INTERVAL,
@@ -268,7 +269,7 @@ class Meter:
         self.notify()
         return image
 
-    def _crop(self) -> tuple[float, float, float, float, float, float]:
+    def _crop(self) -> tuple[float, float, float, float, float, float, bool]:
         return (
             float(self.opt(CONF_CROP_LEFT)),
             float(self.opt(CONF_CROP_TOP)),
@@ -276,6 +277,7 @@ class Meter:
             float(self.opt(CONF_CROP_BOTTOM)),
             float(self.opt(CONF_ROTATE)),
             float(self.opt(CONF_EXPOSURE)),
+            bool(self.opt(CONF_ENHANCE)),
         )
 
     def _store_image(self, content: bytes) -> bytes:

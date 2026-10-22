@@ -41,6 +41,7 @@ from .const import (
     CONF_CROP_TOP,
     CONF_DECIMALS,
     CONF_DISCARD,
+    CONF_ENHANCE,
     CONF_EXPOSURE,
     CONF_HINTS,
     CONF_INTERVAL,
@@ -188,6 +189,7 @@ def meter_sections(v: dict[str, Any]) -> dict[str, vol.Schema]:
                 req(CONF_CROP_BOTTOM): _number(0, 100, 0.5, "%"),
                 req(CONF_ROTATE): _number(-MAX_ROTATION, MAX_ROTATION, 0.5, "°"),
                 req(CONF_EXPOSURE): _number(*EXPOSURE_RANGE, 5, "%"),
+                req(CONF_ENHANCE): BooleanSelector(),
             }
         ),
         SECTION_DISPLAY: vol.Schema(
