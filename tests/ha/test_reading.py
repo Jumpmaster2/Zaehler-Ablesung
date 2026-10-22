@@ -370,3 +370,54 @@ async def test_own_instructions(hass: HomeAssistant, base, ai) -> None:
     ai.answers = ["1.261"] * 4
     await meter.async_read()
     assert ai.calls[0]["instructions"] == "Read the display. Answer only with the number."
+
+
+async def test_second_picture_and_history(hass: HomeAssistant, base, ai, lights, cam) -> None:
+    heat = {**HEAT_METER, "light_brightness_2": 20, "history_hint": True}
+    entry = await setup_entry(hass, meters=[("Heat", heat)])
+    meter = _manual(entry)
+    ai.answers = ["1.261"] * 4
+    assert await meter.async_read() == "ok"
+
+    # each attempt: picture at 60 %, second picture at 20 %, light back to 60 %
+    assert lights[:4] == [
+        ("on", {"entity_id": "light.heat_cam_led", "brightness_pct": 60}),
+        ("on", {"entity_id": "light.heat_cam_led", "brightness_pct": 20}),
+        ("on", {"entity_id": "light.heat_cam_led", "brightness_pct": 60}),
+        ("on", {"entity_id": "light.heat_cam_led", "brightness_pct": 20}),
+    ]
+    call = ai.calls[0]
+    assert [a["media_content_id"].rsplit("/", 1)[1] for a in call["attachments"]] == [
+        "letztes.jpg",
+        "letztes_2.jpg",
+    ]
+    assert "two pictures" in call["instructions"]
+    # no value yet: no last readings
+    assert "last readings" not in call["instructions"]
+    second = meter.folder / "letztes_2.jpg"
+    assert await hass.async_add_executor_job(second.exists)
+
+    ai.calls.clear()
+    ai.answers = ["1.262", "1.262"]
+    assert await meter.async_read() == "ok"
+    assert "last readings: 1.261 MWh (" in ai.calls[0]["instructions"]
+    assert [v for _, v in meter.state.history] == [1.261, 1.262]
+
+    # only the last 3 are kept, a value set by hand starts again
+    for value in ("1.263", "1.264"):
+        ai.answers = [value, value]
+        await meter.async_read()
+    assert [v for _, v in meter.state.history] == [1.262, 1.263, 1.264]
+    meter.set_reading(1.27)
+    assert [v for _, v in meter.state.history] == [1.27]
+
+
+async def test_no_second_picture_by_default(hass: HomeAssistant, base, ai, lights) -> None:
+    entry = await setup_entry(hass)
+    meter = _manual(entry)
+    ai.answers = ["1.261"] * 4
+    await meter.async_read()
+    assert len(ai.calls[0]["attachments"]) == 1
+    assert "two pictures" not in ai.calls[0]["instructions"]
+    assert "last readings" not in ai.calls[0]["instructions"]
+    assert len(lights) == 2

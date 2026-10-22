@@ -61,6 +61,7 @@
                 "camera": "Kamera",
                 "light": "Licht",
                 "light_brightness": "Helligkeit",
+                "light_brightness_2": "Helligkeit 2. Bild",
                 "warmup": "Vorlaufzeit",
                 "discard_frames": "Verworfene Bilder"
               },
@@ -68,6 +69,7 @@
                 "camera": "Kamera-Entität, die auf die Anzeige zeigt (z. B. ESP32-CAM mit ESPHome).",
                 "light": "Optional. Wird für das Bild ein- und danach wieder ausgeschaltet (z. B. die Blitz-LED).",
                 "light_brightness": "Helligkeit des Lichts für das Bild. Am besten mit einem Testbild ausprobieren: Spiegelungen machen die Anzeige unlesbar.",
+                "light_brightness_2": "Optional (0 = aus): Pro Versuch wird ein zweites Bild mit dieser Helligkeit aufgenommen, und die KI bekommt beide. Hilft, wenn bei einer Helligkeit ein Lichtfleck Ziffern überstrahlt und bei der anderen Ziffern zu dunkel sind. Ein Versuch dauert dadurch länger.",
                 "warmup": "Wartezeit nach dem Einschalten des Lichts, damit die Kamera die Belichtung anpasst.",
                 "discard_frames": "Bilder, die vor dem eigentlichen Bild weggeworfen werden. Kameras mit Puffer (ESP32-CAM) liefern sonst ein altes Bild ohne Licht."
               }
@@ -132,6 +134,7 @@
                 "max_correction": "Größte Korrektur",
                 "max_attempts": "Bilder pro Ablesung",
                 "confirmations": "Bestätigungsbilder",
+                "history_hint": "Letzte Stände an die KI",
                 "meter_ai_task_entity": "Eigene KI-Aufgabe"
               },
               "data_description": {
@@ -139,6 +142,7 @@
                 "max_correction": "In der Einheit des Zählers. Ein kleinerer Wert als zuvor wird nur übernommen, wenn er höchstens so viel kleiner ist und von weiteren Bildern bestätigt wird.",
                 "max_attempts": "Höchstens so viele Bilder, bis ein Wert zweimal gelesen wurde.",
                 "confirmations": "Weitere Bilder, die alle den kleineren Wert zeigen müssen, bevor er als Korrektur übernommen wird.",
+                "history_hint": "Die KI bekommt die letzten 3 gültigen Zählerstände als Hinweis, um eine unklare Ziffer plausibel zu entscheiden. Sie soll trotzdem nur ablesen, was im Bild steht; die Prüfungen hier bleiben bestehen. Kann dazu verleiten, einen erwarteten Wert zu nennen, daher vor allem bei schwer lesbaren Anzeigen nutzen.",
                 "meter_ai_task_entity": "Optional. Statt der KI-Aufgabe der Integration."
               }
             },
@@ -174,6 +178,7 @@
                 "camera": "Kamera",
                 "light": "Licht",
                 "light_brightness": "Helligkeit",
+                "light_brightness_2": "Helligkeit 2. Bild",
                 "warmup": "Vorlaufzeit",
                 "discard_frames": "Verworfene Bilder"
               },
@@ -181,6 +186,7 @@
                 "camera": "Kamera-Entität, die auf die Anzeige zeigt (z. B. ESP32-CAM mit ESPHome).",
                 "light": "Optional. Wird für das Bild ein- und danach wieder ausgeschaltet (z. B. die Blitz-LED).",
                 "light_brightness": "Helligkeit des Lichts für das Bild. Am besten mit einem Testbild ausprobieren: Spiegelungen machen die Anzeige unlesbar.",
+                "light_brightness_2": "Optional (0 = aus): Pro Versuch wird ein zweites Bild mit dieser Helligkeit aufgenommen, und die KI bekommt beide. Hilft, wenn bei einer Helligkeit ein Lichtfleck Ziffern überstrahlt und bei der anderen Ziffern zu dunkel sind. Ein Versuch dauert dadurch länger.",
                 "warmup": "Wartezeit nach dem Einschalten des Lichts, damit die Kamera die Belichtung anpasst.",
                 "discard_frames": "Bilder, die vor dem eigentlichen Bild weggeworfen werden. Kameras mit Puffer (ESP32-CAM) liefern sonst ein altes Bild ohne Licht."
               }
@@ -245,6 +251,7 @@
                 "max_correction": "Größte Korrektur",
                 "max_attempts": "Bilder pro Ablesung",
                 "confirmations": "Bestätigungsbilder",
+                "history_hint": "Letzte Stände an die KI",
                 "meter_ai_task_entity": "Eigene KI-Aufgabe"
               },
               "data_description": {
@@ -252,6 +259,7 @@
                 "max_correction": "In der Einheit des Zählers. Ein kleinerer Wert als zuvor wird nur übernommen, wenn er höchstens so viel kleiner ist und von weiteren Bildern bestätigt wird.",
                 "max_attempts": "Höchstens so viele Bilder, bis ein Wert zweimal gelesen wurde.",
                 "confirmations": "Weitere Bilder, die alle den kleineren Wert zeigen müssen, bevor er als Korrektur übernommen wird.",
+                "history_hint": "Die KI bekommt die letzten 3 gültigen Zählerstände als Hinweis, um eine unklare Ziffer plausibel zu entscheiden. Sie soll trotzdem nur ablesen, was im Bild steht; die Prüfungen hier bleiben bestehen. Kann dazu verleiten, einen erwarteten Wert zu nennen, daher vor allem bei schwer lesbaren Anzeigen nutzen.",
                 "meter_ai_task_entity": "Optional. Statt der KI-Aufgabe der Integration."
               }
             },

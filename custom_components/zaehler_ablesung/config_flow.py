@@ -32,6 +32,7 @@ from homeassistant.helpers.selector import (
 from .const import (
     CONF_AI_TASK,
     CONF_BRIGHTNESS,
+    CONF_BRIGHTNESS_2,
     CONF_CAMERA,
     CONF_CONDITION,
     CONF_CONFIRMATIONS,
@@ -44,6 +45,7 @@ from .const import (
     CONF_ENHANCE,
     CONF_EXPOSURE,
     CONF_HINTS,
+    CONF_HISTORY_HINT,
     CONF_INTERVAL,
     CONF_INTERVAL_OFF,
     CONF_LIGHT,
@@ -177,6 +179,7 @@ def meter_sections(v: dict[str, Any]) -> dict[str, vol.Schema]:
                 vol.Required(CONF_CAMERA, default=v.get(CONF_CAMERA)): _entity(["camera"]),
                 _opt(CONF_LIGHT, v): _entity(["light"]),
                 req(CONF_BRIGHTNESS): _number(1, 100, 1, "%"),
+                req(CONF_BRIGHTNESS_2): _number(0, 100, 1, "%"),
                 req(CONF_WARMUP): _number(0, 30, 0.5, "s"),
                 req(CONF_DISCARD): _number(0, 5, 1),
             }
@@ -217,6 +220,7 @@ def meter_sections(v: dict[str, Any]) -> dict[str, vol.Schema]:
                 req(CONF_MAX_CORRECTION): _number(0, 100000, 0.001),
                 req(CONF_MAX_ATTEMPTS): _number(2, 10, 1),
                 req(CONF_CONFIRMATIONS): _number(1, 5, 1),
+                req(CONF_HISTORY_HINT): BooleanSelector(),
                 _opt(CONF_METER_AI_TASK, v): _entity(["ai_task"]),
             }
         ),
@@ -245,6 +249,7 @@ def meter_schema(v: dict[str, Any], with_name: bool) -> vol.Schema:
 
 INT_KEYS = (
     CONF_BRIGHTNESS,
+    CONF_BRIGHTNESS_2,
     CONF_DISCARD,
     CONF_DECIMALS,
     CONF_MAX_ATTEMPTS,

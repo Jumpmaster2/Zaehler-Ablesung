@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from logic.prompt import build_instructions, default_hints, effective_instructions, example
+from logic.prompt import (
+    build_instructions,
+    context_notes,
+    default_hints,
+    effective_instructions,
+    example,
+)
 from logic.units import rate_unit
 
 
@@ -45,3 +51,16 @@ def test_effective_instructions() -> None:
     assert effective_instructions(None, "water", "m³", 3, "Red digits.", "de") == standard
     assert effective_instructions("  ", "water", "m³", 3, "Red digits.", "de") == standard
     assert effective_instructions(" Eigener Text \n", "water", "m³", 3, "", "de") == "Eigener Text"
+
+
+def test_context_notes() -> None:
+    assert context_notes("de") == ""
+    two = context_notes("en", pictures=2)
+    assert "two pictures" in two and two.endswith("\n")
+    history = context_notes(
+        "de", history=[("20.10. 10:23", 1.261), ("22.10. 17:35", 1.269)], unit="MWh", decimals=3
+    )
+    assert "1.261 MWh (20.10. 10:23), 1.269 MWh (22.10. 17:35)" in history
+    assert "nicht lesbar" in history
+    # trailing zeros of the decimals stay
+    assert "1.270 m³" in context_notes("en", history=[("x", 1.27)], unit="m³", decimals=3)
