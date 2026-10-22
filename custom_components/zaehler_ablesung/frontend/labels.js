@@ -7,8 +7,8 @@ export const LABELS = {
     "KI-Aufgaben-Entität, die die Bilder liest (z. B. Anthropic, OpenAI, Google oder Ollama mit Bildunterstützung). Ein Zähler kann eine eigene nutzen."
    ],
    "notify_rejected": [
-    "Bei verworfenen Ablesungen benachrichtigen",
-    "Zeigt eine Benachrichtigung in Home Assistant, wenn eine Ablesung verworfen oder korrigiert wird."
+    "Benachrichtigungen",
+    "Hauptschalter für die Benachrichtigungen in Home Assistant. Ab wann sie bei welchem Zähler kommen, steht beim Zähler unter „Benachrichtigungen“."
    ],
    "name": [
     "Name",
@@ -109,6 +109,22 @@ export const LABELS = {
    "meter_ai_task_entity": [
     "Eigene KI-Aufgabe",
     "Optional. Statt der KI-Aufgabe der Integration."
+   ],
+   "notify_smaller": [
+    "Kleiner als zuvor",
+    "Wert kleiner als der letzte gültige und nicht als Korrektur bestätigt (verworfen)."
+   ],
+   "notify_too_large": [
+    "Anstieg zu groß",
+    "Wert stärker gestiegen als der größte Anstieg pro Stunde erlaubt (verworfen)."
+   ],
+   "notify_corrected": [
+    "Korrigiert",
+    "Kleinerer Wert von weiteren Bildern bestätigt und übernommen."
+   ],
+   "notify_failed": [
+    "Unlesbar oder Fehler",
+    "KI liest nichts Eindeutiges, oder Kamera bzw. KI nicht erreichbar. Unlesbare Ablesungen unterbrechen die Zählung der anderen Fälle nicht."
    ]
   },
   "sections": {
@@ -131,6 +147,10 @@ export const LABELS = {
    "checks_section": [
     "Prüfungen",
     "Mehrheitsentscheid und Plausibilitätsprüfung einer Ablesung."
+   ],
+   "notify_section": [
+    "Benachrichtigungen",
+    "Ab dem wievielten Mal in Folge eine Benachrichtigung in Home Assistant erscheint (0 = nie, 1 = sofort). Eine gültige Ablesung setzt die Zählung zurück. Gilt nur, solange in den Einstellungen der Integration Benachrichtigungen eingeschaltet sind."
    ]
   },
   "errors": {
@@ -174,8 +194,8 @@ export const LABELS = {
     "AI task entity that reads the pictures (e.g. Anthropic, OpenAI, Google or Ollama with image support). A meter can use its own one."
    ],
    "notify_rejected": [
-    "Notify about rejected readings",
-    "Show a notification in Home Assistant when a reading is rejected or corrected."
+    "Notifications",
+    "Main switch for the notifications in Home Assistant. When they come for which meter is set at the meter under \"Notifications\"."
    ],
    "name": [
     "Name",
@@ -276,6 +296,22 @@ export const LABELS = {
    "meter_ai_task_entity": [
     "Own AI task",
     "Optional. Instead of the AI task of the integration."
+   ],
+   "notify_smaller": [
+    "Smaller than before",
+    "Value below the last valid one and not confirmed as a correction (rejected)."
+   ],
+   "notify_too_large": [
+    "Increase too large",
+    "Value rose more than the largest increase per hour allows (rejected)."
+   ],
+   "notify_corrected": [
+    "Corrected",
+    "Smaller value confirmed by more pictures and taken."
+   ],
+   "notify_failed": [
+    "Unreadable or error",
+    "The AI reads nothing clear, or the camera or AI is not reachable. Unreadable readings do not interrupt the count of the other cases."
    ]
   },
   "sections": {
@@ -298,6 +334,10 @@ export const LABELS = {
    "checks_section": [
     "Checks",
     "Majority vote and plausibility check of a reading."
+   ],
+   "notify_section": [
+    "Notifications",
+    "From the how-many-th time in a row a notification appears in Home Assistant (0 = never, 1 = at once). A valid reading starts the count again. Only while notifications are switched on in the settings of the integration."
    ]
   },
   "errors": {

@@ -30,8 +30,24 @@ Alles wird im Dashboard **Zähler-Ablesung** in der Seitenleiste eingerichtet: Z
 
 * **Anstieg zu groß:** Steigt der Wert seit der letzten gültigen Ablesung um mehr als *größter Anstieg pro Stunde × Stunden* (mindestens eine halbe Stunde, ohne vorherigen Wert zwei Stunden), wird er verworfen.
 * **Kleiner als zuvor:** Ein kleinerer Wert wird nur übernommen, wenn er höchstens um die *größte Korrektur* kleiner ist und weitere Bilder (Standard 2) ihn alle bestätigen. Dann gilt er als "korrigiert" (eine frühere Fehllesung wird damit berichtigt).
-* Verworfene und korrigierte Ablesungen erzeugen eine Benachrichtigung in Home Assistant (abschaltbar). Bei "unlesbar" oder nicht erreichbarer Kamera/KI erst ab dem dritten Fehlschlag in Folge. Im Dashboard lässt sich ein verworfener, aber richtig gelesener Wert mit einem Klick übernehmen. Das Bild wird unter `verworfen/` aufbewahrt (die letzten 20) und ist im Dashboard auf der Zählerkarte unter **Verworfene Bilder** zu sehen.
+* Im Dashboard lässt sich ein verworfener, aber richtig gelesener Wert mit einem Klick übernehmen. Das Bild wird unter `verworfen/` aufbewahrt (die letzten 20) und ist im Dashboard auf der Zählerkarte unter **Verworfene Bilder** zu sehen.
 * Der Zählerstand-Sensor hat die Zustandsklasse `total` (nicht `total_increasing`), damit eine Korrektur nach unten in der Statistik nicht als Zählertausch zählt.
+
+### Benachrichtigungen
+
+Verworfene, korrigierte und fehlgeschlagene Ablesungen können eine Benachrichtigung in Home Assistant erzeugen. Für jeden Zähler lässt sich im Abschnitt **Benachrichtigungen** einstellen, ab dem wievielten Mal in Folge sie erscheint (0 = nie, 1 = sofort):
+
+| Fall | Standard |
+| --- | --- |
+| Kleiner als zuvor | 1 |
+| Anstieg zu groß | 1 |
+| Korrigiert | 1 |
+| Unlesbar oder Fehler (Kamera/KI nicht erreichbar) | 3 |
+
+* Eine gültige Ablesung setzt die Zählung zurück und entfernt die Benachrichtigung.
+* Ein anderer Fall beginnt die Zählung neu (z. B. "Anstieg zu groß" nach zweimal "kleiner als zuvor"). Unlesbare Ablesungen zeigen keinen Wert und unterbrechen die Zählung der anderen Fälle nicht; sie werden für sich gezählt.
+* Beispiel: Beim Wasserzähler "Kleiner als zuvor" auf 3, dann kommt erst beim dritten kleineren Wert in Folge eine Nachricht, beim Wärmezähler bleibt es bei 1.
+* Der Schalter in den Einstellungen der Integration schaltet alle Benachrichtigungen ab.
 
 ### Zeitplan
 

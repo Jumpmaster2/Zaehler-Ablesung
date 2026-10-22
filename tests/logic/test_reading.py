@@ -101,8 +101,26 @@ def test_retry_and_notify() -> None:
     assert rd.effective_interval(10, rd.STATUS_ERROR, 1) == 10
     assert rd.effective_interval(60, rd.STATUS_TOO_LARGE, 0) == 60
     assert rd.effective_interval(60, rd.STATUS_OK, 0) == 60
-    assert not rd.should_notify(rd.STATUS_OK, 0)
-    assert not rd.should_notify(rd.STATUS_ERROR, 2)
-    assert rd.should_notify(rd.STATUS_ERROR, 3)
-    assert rd.should_notify(rd.STATUS_SMALLER, 0)
-    assert rd.should_notify(rd.STATUS_CORRECTED, 0)
+    assert not rd.should_notify(rd.STATUS_OK, 0, 1)
+    assert not rd.should_notify(rd.STATUS_ERROR, 2, 3)
+    assert rd.should_notify(rd.STATUS_ERROR, 3, 3)
+    assert rd.should_notify(rd.STATUS_ERROR, 4, 3)
+    assert rd.should_notify(rd.STATUS_SMALLER, 1, 1)
+    assert rd.should_notify(rd.STATUS_CORRECTED, 1, 1)
+    assert not rd.should_notify(rd.STATUS_SMALLER, 2, 3)
+    # 0: never
+    assert not rd.should_notify(rd.STATUS_SMALLER, 10, 0)
+
+
+def test_streak() -> None:
+    assert rd.streak(rd.STATUS_SMALLER, None, 0) == (rd.STATUS_SMALLER, 1)
+    assert rd.streak(rd.STATUS_SMALLER, rd.STATUS_SMALLER, 1) == (rd.STATUS_SMALLER, 2)
+    # another kind starts again
+    assert rd.streak(rd.STATUS_TOO_LARGE, rd.STATUS_SMALLER, 2) == (rd.STATUS_TOO_LARGE, 1)
+    assert rd.streak(rd.STATUS_CORRECTED, rd.STATUS_CORRECTED, 1) == (rd.STATUS_CORRECTED, 2)
+    # no value read: the run goes on
+    assert rd.streak(rd.STATUS_UNREADABLE, rd.STATUS_SMALLER, 2) == (rd.STATUS_SMALLER, 2)
+    assert rd.streak(rd.STATUS_ERROR, rd.STATUS_SMALLER, 2) == (rd.STATUS_SMALLER, 2)
+    # a valid reading ends it
+    assert rd.streak(rd.STATUS_OK, rd.STATUS_SMALLER, 2) == (None, 0)
+    assert rd.streak(rd.STATUS_MANUAL, rd.STATUS_SMALLER, 2) == (None, 0)

@@ -52,6 +52,10 @@ from .const import (
     CONF_METER_AI_TASK,
     CONF_NAME,
     CONF_NOTIFY,
+    CONF_NOTIFY_CORRECTED,
+    CONF_NOTIFY_FAILED,
+    CONF_NOTIFY_SMALLER,
+    CONF_NOTIFY_TOO_LARGE,
     CONF_PROMPT,
     CONF_ROTATE,
     CONF_TYPE,
@@ -65,6 +69,7 @@ from .const import (
     SECTION_CHECKS,
     SECTION_DISPLAY,
     SECTION_IMAGE,
+    SECTION_NOTIFY,
     SECTION_SCHEDULE,
     SUBENTRY_METER,
     meter_defaults,
@@ -213,10 +218,18 @@ def meter_sections(v: dict[str, Any]) -> dict[str, vol.Schema]:
                 _opt(CONF_METER_AI_TASK, v): _entity(["ai_task"]),
             }
         ),
+        SECTION_NOTIFY: vol.Schema(
+            {
+                req(CONF_NOTIFY_SMALLER): _number(0, 50, 1),
+                req(CONF_NOTIFY_TOO_LARGE): _number(0, 50, 1),
+                req(CONF_NOTIFY_CORRECTED): _number(0, 50, 1),
+                req(CONF_NOTIFY_FAILED): _number(0, 50, 1),
+            }
+        ),
     }
 
 
-COLLAPSED = {SECTION_IMAGE, SECTION_CHECKS}
+COLLAPSED = {SECTION_IMAGE, SECTION_CHECKS, SECTION_NOTIFY}
 
 
 def meter_schema(v: dict[str, Any], with_name: bool) -> vol.Schema:
@@ -228,7 +241,17 @@ def meter_schema(v: dict[str, Any], with_name: bool) -> vol.Schema:
     return vol.Schema(fields)
 
 
-INT_KEYS = (CONF_BRIGHTNESS, CONF_DISCARD, CONF_DECIMALS, CONF_MAX_ATTEMPTS, CONF_CONFIRMATIONS)
+INT_KEYS = (
+    CONF_BRIGHTNESS,
+    CONF_DISCARD,
+    CONF_DECIMALS,
+    CONF_MAX_ATTEMPTS,
+    CONF_CONFIRMATIONS,
+    CONF_NOTIFY_SMALLER,
+    CONF_NOTIFY_TOO_LARGE,
+    CONF_NOTIFY_CORRECTED,
+    CONF_NOTIFY_FAILED,
+)
 
 
 def clean_meter(data: dict[str, Any]) -> dict[str, Any]:

@@ -64,13 +64,26 @@ CONF_MAX_CORRECTION = "max_correction"
 CONF_MAX_ATTEMPTS = "max_attempts"
 CONF_CONFIRMATIONS = "confirmations"
 CONF_METER_AI_TASK = "meter_ai_task_entity"
+# from the how-many-th time in a row a notification is sent (0: never)
+CONF_NOTIFY_SMALLER = "notify_smaller"
+CONF_NOTIFY_TOO_LARGE = "notify_too_large"
+CONF_NOTIFY_CORRECTED = "notify_corrected"
+CONF_NOTIFY_FAILED = "notify_failed"
 
 SECTION_CAMERA = "camera_section"
 SECTION_IMAGE = "image_section"
 SECTION_DISPLAY = "display_section"
 SECTION_SCHEDULE = "schedule_section"
 SECTION_CHECKS = "checks_section"
-METER_SECTIONS = (SECTION_CAMERA, SECTION_IMAGE, SECTION_DISPLAY, SECTION_SCHEDULE, SECTION_CHECKS)
+SECTION_NOTIFY = "notify_section"
+METER_SECTIONS = (
+    SECTION_CAMERA,
+    SECTION_IMAGE,
+    SECTION_DISPLAY,
+    SECTION_SCHEDULE,
+    SECTION_CHECKS,
+    SECTION_NOTIFY,
+)
 
 METER_DEFAULTS = {
     CONF_TYPE: TYPE_HEAT,
@@ -87,6 +100,10 @@ METER_DEFAULTS = {
     CONF_INTERVAL_OFF: 360,
     CONF_MAX_ATTEMPTS: 4,
     CONF_CONFIRMATIONS: 2,
+    CONF_NOTIFY_SMALLER: 1,
+    CONF_NOTIFY_TOO_LARGE: 1,
+    CONF_NOTIFY_CORRECTED: 1,
+    CONF_NOTIFY_FAILED: 3,
 }
 
 

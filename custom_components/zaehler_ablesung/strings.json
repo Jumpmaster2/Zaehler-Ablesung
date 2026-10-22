@@ -6,11 +6,11 @@
         "description": "Reads meters with a camera and an AI task. Add the meters afterwards on the integration page or in the sidebar panel.",
         "data": {
           "ai_task_entity": "AI task",
-          "notify_rejected": "Notify about rejected readings"
+          "notify_rejected": "Notifications"
         },
         "data_description": {
           "ai_task_entity": "AI task entity that reads the pictures (e.g. Anthropic, OpenAI, Google or Ollama with image support). A meter can use its own one.",
-          "notify_rejected": "Show a notification in Home Assistant when a reading is rejected or corrected."
+          "notify_rejected": "Main switch for the notifications in Home Assistant. When they come for which meter is set at the meter under \"Notifications\"."
         }
       }
     },
@@ -25,11 +25,11 @@
         "title": "Settings",
         "data": {
           "ai_task_entity": "AI task",
-          "notify_rejected": "Notify about rejected readings"
+          "notify_rejected": "Notifications"
         },
         "data_description": {
           "ai_task_entity": "AI task entity that reads the pictures (e.g. Anthropic, OpenAI, Google or Ollama with image support). A meter can use its own one.",
-          "notify_rejected": "Show a notification in Home Assistant when a reading is rejected or corrected."
+          "notify_rejected": "Main switch for the notifications in Home Assistant. When they come for which meter is set at the meter under \"Notifications\"."
         }
       }
     }
@@ -139,6 +139,22 @@
                 "confirmations": "Further pictures that must all show a smaller value before it is taken as a correction.",
                 "meter_ai_task_entity": "Optional. Instead of the AI task of the integration."
               }
+            },
+            "notify_section": {
+              "name": "Notifications",
+              "description": "From the how-many-th time in a row a notification appears in Home Assistant (0 = never, 1 = at once). A valid reading starts the count again. Only while notifications are switched on in the settings of the integration.",
+              "data": {
+                "notify_smaller": "Smaller than before",
+                "notify_too_large": "Increase too large",
+                "notify_corrected": "Corrected",
+                "notify_failed": "Unreadable or error"
+              },
+              "data_description": {
+                "notify_smaller": "Value below the last valid one and not confirmed as a correction (rejected).",
+                "notify_too_large": "Value rose more than the largest increase per hour allows (rejected).",
+                "notify_corrected": "Smaller value confirmed by more pictures and taken.",
+                "notify_failed": "The AI reads nothing clear, or the camera or AI is not reachable. Unreadable readings do not interrupt the count of the other cases."
+              }
             }
           }
         },
@@ -233,6 +249,22 @@
                 "max_attempts": "Most pictures until a value has been read twice.",
                 "confirmations": "Further pictures that must all show a smaller value before it is taken as a correction.",
                 "meter_ai_task_entity": "Optional. Instead of the AI task of the integration."
+              }
+            },
+            "notify_section": {
+              "name": "Notifications",
+              "description": "From the how-many-th time in a row a notification appears in Home Assistant (0 = never, 1 = at once). A valid reading starts the count again. Only while notifications are switched on in the settings of the integration.",
+              "data": {
+                "notify_smaller": "Smaller than before",
+                "notify_too_large": "Increase too large",
+                "notify_corrected": "Corrected",
+                "notify_failed": "Unreadable or error"
+              },
+              "data_description": {
+                "notify_smaller": "Value below the last valid one and not confirmed as a correction (rejected).",
+                "notify_too_large": "Value rose more than the largest increase per hour allows (rejected).",
+                "notify_corrected": "Smaller value confirmed by more pictures and taken.",
+                "notify_failed": "The AI reads nothing clear, or the camera or AI is not reachable. Unreadable readings do not interrupt the count of the other cases."
               }
             }
           }

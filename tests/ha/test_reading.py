@@ -183,6 +183,56 @@ async def test_errors(hass: HomeAssistant, base, ai) -> None:
     assert meter.interval_minutes() == 30
 
 
+async def test_notify_per_meter(hass: HomeAssistant, base, ai) -> None:
+    meter_data = {**HEAT_METER, "notify_smaller": 3, "notify_failed": 0}
+    entry = await setup_entry(hass, meters=[("Heat", meter_data)])
+    meter = _manual(entry)
+    ai.answers = ["1.261"] * 4
+    assert await meter.async_read() == "ok"
+
+    # smaller twice, an unreadable one in between neither counts nor ends the run
+    ai.answers = ["1.0", "1.0"]
+    assert await meter.async_read() == "smaller"
+    ai.answers = ["unlesbar"] * 4
+    assert await meter.async_read() == "unreadable"
+    ai.answers = ["1.0", "1.0"]
+    assert await meter.async_read() == "smaller"
+    assert meter.state.streak == 2
+    assert not _notified(hass)
+
+    # the third time in a row is reported
+    ai.answers = ["1.0", "1.0"]
+    assert await meter.async_read() == "smaller"
+    assert _notified(hass)
+    assert "3 times in a row" in _message(hass)
+
+    # a valid reading removes the notification and starts the count again
+    ai.answers = ["1.261", "1.261"]
+    assert await meter.async_read() == "ok"
+    assert not _notified(hass)
+    assert meter.state.streak == 0
+    ai.answers = ["1.0", "1.0"]
+    assert await meter.async_read() == "smaller"
+    assert not _notified(hass)
+
+    # failures are never reported for this meter
+    for _ in range(4):
+        ai.answers = ["RAISE"] * 4
+        assert await meter.async_read() == "error"
+    assert meter.state.failures == 4
+    assert not _notified(hass)
+
+
+def _message(hass: HomeAssistant) -> str:
+    from homeassistant.components import persistent_notification
+
+    return next(
+        n["message"]
+        for key, n in persistent_notification._async_get_or_create_notifications(hass).items()
+        if key.startswith(DOMAIN)
+    )
+
+
 def _notified(hass: HomeAssistant) -> bool:
     from homeassistant.components import persistent_notification
 

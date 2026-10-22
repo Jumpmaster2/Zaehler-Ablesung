@@ -6,11 +6,11 @@
         "description": "Liest Zähler mit einer Kamera und einer KI-Aufgabe ab. Die Zähler werden danach auf der Integrationsseite oder im Seitenleisten-Panel angelegt.",
         "data": {
           "ai_task_entity": "KI-Aufgabe",
-          "notify_rejected": "Bei verworfenen Ablesungen benachrichtigen"
+          "notify_rejected": "Benachrichtigungen"
         },
         "data_description": {
           "ai_task_entity": "KI-Aufgaben-Entität, die die Bilder liest (z. B. Anthropic, OpenAI, Google oder Ollama mit Bildunterstützung). Ein Zähler kann eine eigene nutzen.",
-          "notify_rejected": "Zeigt eine Benachrichtigung in Home Assistant, wenn eine Ablesung verworfen oder korrigiert wird."
+          "notify_rejected": "Hauptschalter für die Benachrichtigungen in Home Assistant. Ab wann sie bei welchem Zähler kommen, steht beim Zähler unter „Benachrichtigungen“."
         }
       }
     },
@@ -25,11 +25,11 @@
         "title": "Einstellungen",
         "data": {
           "ai_task_entity": "KI-Aufgabe",
-          "notify_rejected": "Bei verworfenen Ablesungen benachrichtigen"
+          "notify_rejected": "Benachrichtigungen"
         },
         "data_description": {
           "ai_task_entity": "KI-Aufgaben-Entität, die die Bilder liest (z. B. Anthropic, OpenAI, Google oder Ollama mit Bildunterstützung). Ein Zähler kann eine eigene nutzen.",
-          "notify_rejected": "Zeigt eine Benachrichtigung in Home Assistant, wenn eine Ablesung verworfen oder korrigiert wird."
+          "notify_rejected": "Hauptschalter für die Benachrichtigungen in Home Assistant. Ab wann sie bei welchem Zähler kommen, steht beim Zähler unter „Benachrichtigungen“."
         }
       }
     }
@@ -139,6 +139,22 @@
                 "confirmations": "Weitere Bilder, die alle den kleineren Wert zeigen müssen, bevor er als Korrektur übernommen wird.",
                 "meter_ai_task_entity": "Optional. Statt der KI-Aufgabe der Integration."
               }
+            },
+            "notify_section": {
+              "name": "Benachrichtigungen",
+              "description": "Ab dem wievielten Mal in Folge eine Benachrichtigung in Home Assistant erscheint (0 = nie, 1 = sofort). Eine gültige Ablesung setzt die Zählung zurück. Gilt nur, solange in den Einstellungen der Integration Benachrichtigungen eingeschaltet sind.",
+              "data": {
+                "notify_smaller": "Kleiner als zuvor",
+                "notify_too_large": "Anstieg zu groß",
+                "notify_corrected": "Korrigiert",
+                "notify_failed": "Unlesbar oder Fehler"
+              },
+              "data_description": {
+                "notify_smaller": "Wert kleiner als der letzte gültige und nicht als Korrektur bestätigt (verworfen).",
+                "notify_too_large": "Wert stärker gestiegen als der größte Anstieg pro Stunde erlaubt (verworfen).",
+                "notify_corrected": "Kleinerer Wert von weiteren Bildern bestätigt und übernommen.",
+                "notify_failed": "KI liest nichts Eindeutiges, oder Kamera bzw. KI nicht erreichbar. Unlesbare Ablesungen unterbrechen die Zählung der anderen Fälle nicht."
+              }
             }
           }
         },
@@ -233,6 +249,22 @@
                 "max_attempts": "Höchstens so viele Bilder, bis ein Wert zweimal gelesen wurde.",
                 "confirmations": "Weitere Bilder, die alle den kleineren Wert zeigen müssen, bevor er als Korrektur übernommen wird.",
                 "meter_ai_task_entity": "Optional. Statt der KI-Aufgabe der Integration."
+              }
+            },
+            "notify_section": {
+              "name": "Benachrichtigungen",
+              "description": "Ab dem wievielten Mal in Folge eine Benachrichtigung in Home Assistant erscheint (0 = nie, 1 = sofort). Eine gültige Ablesung setzt die Zählung zurück. Gilt nur, solange in den Einstellungen der Integration Benachrichtigungen eingeschaltet sind.",
+              "data": {
+                "notify_smaller": "Kleiner als zuvor",
+                "notify_too_large": "Anstieg zu groß",
+                "notify_corrected": "Korrigiert",
+                "notify_failed": "Unlesbar oder Fehler"
+              },
+              "data_description": {
+                "notify_smaller": "Wert kleiner als der letzte gültige und nicht als Korrektur bestätigt (verworfen).",
+                "notify_too_large": "Wert stärker gestiegen als der größte Anstieg pro Stunde erlaubt (verworfen).",
+                "notify_corrected": "Kleinerer Wert von weiteren Bildern bestätigt und übernommen.",
+                "notify_failed": "KI liest nichts Eindeutiges, oder Kamera bzw. KI nicht erreichbar. Unlesbare Ablesungen unterbrechen die Zählung der anderen Fälle nicht."
               }
             }
           }

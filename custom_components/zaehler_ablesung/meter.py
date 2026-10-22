@@ -43,6 +43,10 @@ from .const import (
     CONF_MAX_RATE,
     CONF_METER_AI_TASK,
     CONF_NOTIFY,
+    CONF_NOTIFY_CORRECTED,
+    CONF_NOTIFY_FAILED,
+    CONF_NOTIFY_SMALLER,
+    CONF_NOTIFY_TOO_LARGE,
     CONF_PROMPT,
     CONF_ROTATE,
     CONF_TYPE,
@@ -89,6 +93,9 @@ class MeterState:
     read_value: float | None = None
     # failed readings (camera, AI, unreadable) in a row
     failures: int = 0
+    # rejected or corrected values of the same kind in a row
+    streak_status: str | None = None
+    streak: int = 0
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -101,6 +108,8 @@ class MeterState:
             "automatic": self.automatic,
             "read_value": self.read_value,
             "failures": self.failures,
+            "streak_status": self.streak_status,
+            "streak": self.streak,
         }
 
     @classmethod
@@ -120,6 +129,8 @@ class MeterState:
             automatic=data.get("automatic", True),
             read_value=data.get("read_value"),
             failures=int(data.get("failures") or 0),
+            streak_status=data.get("streak_status"),
+            streak=int(data.get("streak") or 0),
         )
 
 
@@ -436,6 +447,7 @@ class Meter:
         state.readings = readings
         state.read_value = value
         state.failures = state.failures + 1 if status in rd.FAILED_STATUSES else 0
+        state.streak_status, state.streak = rd.streak(status, state.streak_status, state.streak)
         if valid and value is not None:
             state.value = value
             state.value_time = now
@@ -460,13 +472,20 @@ class Meter:
         if status != rd.STATUS_OK:
             stamp = dt_util.as_local(now).strftime("%Y%m%d-%H%M%S")
             await self.hass.async_add_executor_job(self._keep_rejected, stamp, status)
+            count = self._in_a_row(status)
             if self.manager.options.get(CONF_NOTIFY, DEFAULTS[CONF_NOTIFY]) and rd.should_notify(
-                status, state.failures
+                status, count, int(self.opt(NOTIFY_AFTER[status]))
             ):
-                self._notification(status, value, previous, readings, limit, now)
+                self._notification(status, value, previous, readings, limit, now, count)
         else:
             persistent_notification.async_dismiss(self.hass, self._notification_id)
         return status
+
+    def _in_a_row(self, status: str) -> int:
+        """How many readings in a row ended like this one."""
+        if status in rd.FAILED_STATUSES:
+            return self.state.failures
+        return self.state.streak
 
     @property
     def _notification_id(self) -> str:
@@ -480,12 +499,15 @@ class Meter:
         readings: list[str],
         limit: float,
         now: datetime,
+        count: int,
     ) -> None:
         de = (self.hass.config.language or "").startswith("de")
         texts = STATUS_TEXT["de" if de else "en"]
         when = dt_util.as_local(now).strftime("%d.%m. %H:%M")
         unit = f" {self.unit}" if self.unit else ""
         lines = [f"{when}: {texts[status]}."]
+        if count > 1:
+            lines.append(f"Zum {count}. Mal in Folge." if de else f"{count} times in a row.")
         lines.append(("Lesungen: " if de else "Readings: ") + " / ".join(readings))
         if previous is not None:
             lines.append(("Vorheriger Wert: " if de else "Previous value: ") + f"{previous}{unit}")
@@ -515,6 +537,7 @@ class Meter:
         self.state.status = rd.STATUS_MANUAL
         self.state.rate = None
         self.state.failures = 0
+        self.state.streak_status, self.state.streak = None, 0
         self.manager.async_save()
         self.notify()
 
@@ -523,6 +546,15 @@ class Meter:
         self.manager.async_save()
         self.notify()
 
+
+# setting of the meter: from the how-many-th time in a row a status is reported
+NOTIFY_AFTER = {
+    rd.STATUS_SMALLER: CONF_NOTIFY_SMALLER,
+    rd.STATUS_TOO_LARGE: CONF_NOTIFY_TOO_LARGE,
+    rd.STATUS_CORRECTED: CONF_NOTIFY_CORRECTED,
+    rd.STATUS_UNREADABLE: CONF_NOTIFY_FAILED,
+    rd.STATUS_ERROR: CONF_NOTIFY_FAILED,
+}
 
 STATUS_TEXT = {
     "de": {

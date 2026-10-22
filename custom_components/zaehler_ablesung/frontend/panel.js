@@ -176,7 +176,7 @@ const STATUS_PILL = {
 // fields that follow the meter type while a new meter is edited
 const TYPE_FIELDS = ["unit", "decimals", "max_rate", "max_correction", "interval", "hints"];
 // sections shown collapsed in the editor
-const COLLAPSED = new Set(["checks_section"]);
+const COLLAPSED = new Set(["checks_section", "notify_section"]);
 
 const esc = (value) =>
   String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);

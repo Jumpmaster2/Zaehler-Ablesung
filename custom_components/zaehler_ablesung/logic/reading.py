@@ -47,9 +47,9 @@ _LABELLED = re.compile(
 
 # after a failed reading (camera, AI or unreadable) the next try comes sooner
 RETRY_MINUTES = 15.0
-# failed readings in a row before a notification is sent
-NOTIFY_AFTER_FAILURES = 3
 FAILED_STATUSES = (STATUS_ERROR, STATUS_UNREADABLE)
+# rejected or corrected values, counted in a row for the notification
+STREAK_STATUSES = (STATUS_SMALLER, STATUS_TOO_LARGE, STATUS_CORRECTED)
 
 
 def normalize(answer: object) -> str:
@@ -174,13 +174,23 @@ def effective_interval(interval_minutes: float, status: str | None, failures: in
     return interval_minutes
 
 
-def should_notify(status: str, failures: int) -> bool:
-    """Rejected values are reported at once, failures only when they repeat."""
-    if status == STATUS_OK:
-        return False
+def streak(status: str, last_status: str | None, count: int) -> tuple[str | None, int]:
+    """Status of the current run of rejected or corrected values and how long it is.
+
+    The same status again makes the run longer, a valid reading ends it. A failed
+    reading (camera, AI, unreadable) shows no value and leaves the run as it is;
+    failures are counted on their own.
+    """
     if status in FAILED_STATUSES:
-        return failures >= NOTIFY_AFTER_FAILURES
-    return True
+        return last_status, count
+    if status in STREAK_STATUSES:
+        return status, count + 1 if status == last_status else 1
+    return None, 0
+
+
+def should_notify(status: str, count: int, after: int) -> bool:
+    """Reported from the ``after``-th time in a row on (0: never)."""
+    return status != STATUS_OK and after > 0 and count >= after
 
 
 def interval_due(

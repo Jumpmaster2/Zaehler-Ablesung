@@ -33,6 +33,12 @@ DETAILS = {
         "max_attempts": 4,
         "confirmations": 2,
     },
+    "notify_section": {
+        "notify_smaller": 3,
+        "notify_too_large": 1,
+        "notify_corrected": 0,
+        "notify_failed": 5.0,
+    },
 }
 
 
@@ -79,6 +85,11 @@ async def test_meter_subentry(hass: HomeAssistant, base) -> None:
     assert sub.data["crop_top"] == 40
     assert sub.data["rotate"] == -3.5
     assert sub.data["exposure"] == 80
+    assert sub.data["notify_smaller"] == 3
+    assert sub.data["notify_corrected"] == 0
+    # whole numbers are stored as int
+    assert sub.data["notify_failed"] == 5
+    assert isinstance(sub.data["notify_failed"], int)
     assert hass.states.get("sensor.water_meter_reading")
 
     # reconfigure: rename and change the decimals
