@@ -79,6 +79,52 @@ TEMPLATES = {
 }
 
 
+TWO_PICTURES = {
+    "de": (
+        "Du bekommst zwei Bilder derselben Anzeige mit unterschiedlich heller Beleuchtung. "
+        "Lies jede Ziffer auf dem Bild, auf dem sie besser zu erkennen ist.\n"
+    ),
+    "en": (
+        "You get two pictures of the same display with lighting of different brightness. "
+        "Read every digit in the picture where it is easier to see.\n"
+    ),
+}
+
+HISTORY = {
+    "de": (
+        "Zur Plausibilitätsprüfung die letzten Zählerstände: {values}. Der Zählerstand "
+        "steigt nur und ändert sich meist wenig. Nutze diese Werte nur, um bei einer "
+        "unklaren Ziffer zu entscheiden. Lies trotzdem nur, was auf dem Bild steht, und "
+        "übernimm keinen dieser Werte, wenn die Anzeige nicht lesbar ist.\n"
+    ),
+    "en": (
+        "For a plausibility check the last readings: {values}. The reading only goes up "
+        "and mostly changes little. Use these values only to decide about an unclear "
+        "digit. Still read only what the picture shows, and do not take any of these "
+        "values when the display is not readable.\n"
+    ),
+}
+
+
+def context_notes(
+    lang: str | None,
+    pictures: int = 1,
+    history: list[tuple[str, float]] | None = None,
+    unit: str = "",
+    decimals: int = 0,
+) -> str:
+    """Notes for this run in front of the instructions: two pictures, last readings
+    (oldest first, with the local time as text)."""
+    lang = language(lang)
+    notes = TWO_PICTURES[lang] if pictures > 1 else ""
+    if history:
+        suffix = f" {unit}" if unit else ""
+        places = max(0, int(decimals))
+        values = ", ".join(f"{value:.{places}f}{suffix} ({when})" for when, value in history)
+        notes += HISTORY[lang].format(values=values)
+    return notes
+
+
 def language(lang: str | None) -> str:
     return "de" if (lang or "").lower().startswith("de") else "en"
 

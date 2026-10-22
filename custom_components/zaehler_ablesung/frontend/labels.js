@@ -30,6 +30,10 @@ export const LABELS = {
     "Helligkeit",
     "Helligkeit des Lichts für das Bild. Am besten mit einem Testbild ausprobieren: Spiegelungen machen die Anzeige unlesbar."
    ],
+   "light_brightness_2": [
+    "Helligkeit 2. Bild",
+    "Optional (0 = aus): Pro Versuch wird ein zweites Bild mit dieser Helligkeit aufgenommen, und die KI bekommt beide. Hilft, wenn bei einer Helligkeit ein Lichtfleck Ziffern überstrahlt und bei der anderen Ziffern zu dunkel sind. Ein Versuch dauert dadurch länger."
+   ],
    "warmup": [
     "Vorlaufzeit",
     "Wartezeit nach dem Einschalten des Lichts, damit die Kamera die Belichtung anpasst."
@@ -109,6 +113,10 @@ export const LABELS = {
    "confirmations": [
     "Bestätigungsbilder",
     "Weitere Bilder, die alle den kleineren Wert zeigen müssen, bevor er als Korrektur übernommen wird."
+   ],
+   "history_hint": [
+    "Letzte Stände an die KI",
+    "Die KI bekommt die letzten 3 gültigen Zählerstände als Hinweis, um eine unklare Ziffer plausibel zu entscheiden. Sie soll trotzdem nur ablesen, was im Bild steht; die Prüfungen hier bleiben bestehen. Kann dazu verleiten, einen erwarteten Wert zu nennen, daher vor allem bei schwer lesbaren Anzeigen nutzen."
    ],
    "meter_ai_task_entity": [
     "Eigene KI-Aufgabe",
@@ -221,6 +229,10 @@ export const LABELS = {
     "Light brightness",
     "Brightness of the light for the picture. Try it with a test picture: reflections make the display unreadable."
    ],
+   "light_brightness_2": [
+    "Brightness 2nd picture",
+    "Optional (0 = off): each attempt also takes a second picture with this brightness, and the AI gets both. Helps when at one brightness a light spot outshines digits and at the other digits are too dark. An attempt takes longer."
+   ],
    "warmup": [
     "Warm-up time",
     "Wait after switching the light on, so the camera adjusts its exposure."
@@ -300,6 +312,10 @@ export const LABELS = {
    "confirmations": [
     "Confirmation pictures",
     "Further pictures that must all show a smaller value before it is taken as a correction."
+   ],
+   "history_hint": [
+    "Last readings to the AI",
+    "The AI gets the last 3 valid readings as a hint, to decide an unclear digit plausibly. It should still read only what the picture shows; the checks here stay in place. Can tempt the AI to name an expected value, so use it mainly for displays that are hard to read."
    ],
    "meter_ai_task_entity": [
     "Own AI task",

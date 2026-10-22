@@ -20,6 +20,10 @@ SUBENTRY_METER = "meter"
 # folder below the local media folder: <media>/zaehler_ablesung/<meter id>/
 MEDIA_FOLDER = DOMAIN
 IMAGE_NAME = "letztes.jpg"
+# second picture of a run with other light brightness
+SECOND_IMAGE_NAME = "letztes_2.jpg"
+# valid readings the AI gets for a plausibility check
+HISTORY_KEEP = 3
 ORIGINAL_NAME = "original.jpg"
 REJECTED_FOLDER = "verworfen"
 REJECTED_KEEP = 20
@@ -44,6 +48,7 @@ CONF_TYPE = "meter_type"
 CONF_CAMERA = "camera"
 CONF_LIGHT = "light"
 CONF_BRIGHTNESS = "light_brightness"
+CONF_BRIGHTNESS_2 = "light_brightness_2"
 CONF_WARMUP = "warmup"
 CONF_DISCARD = "discard_frames"
 CONF_CROP_LEFT = "crop_left"
@@ -65,6 +70,7 @@ CONF_MAX_CORRECTION = "max_correction"
 CONF_MAX_ATTEMPTS = "max_attempts"
 CONF_CONFIRMATIONS = "confirmations"
 CONF_METER_AI_TASK = "meter_ai_task_entity"
+CONF_HISTORY_HINT = "history_hint"
 # from the how-many-th time in a row a notification is sent (0: never)
 CONF_NOTIFY_SMALLER = "notify_smaller"
 CONF_NOTIFY_TOO_LARGE = "notify_too_large"
@@ -89,6 +95,7 @@ METER_SECTIONS = (
 METER_DEFAULTS = {
     CONF_TYPE: TYPE_HEAT,
     CONF_BRIGHTNESS: 60,
+    CONF_BRIGHTNESS_2: 0,
     CONF_WARMUP: 3,
     CONF_DISCARD: 2,
     CONF_CROP_LEFT: 0,
@@ -102,6 +109,7 @@ METER_DEFAULTS = {
     CONF_INTERVAL_OFF: 360,
     CONF_MAX_ATTEMPTS: 4,
     CONF_CONFIRMATIONS: 2,
+    CONF_HISTORY_HINT: False,
     CONF_NOTIFY_SMALLER: 1,
     CONF_NOTIFY_TOO_LARGE: 1,
     CONF_NOTIFY_CORRECTED: 1,

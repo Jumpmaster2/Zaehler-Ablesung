@@ -24,6 +24,8 @@ Alles wird im Dashboard **Zähler-Ablesung** in der Seitenleiste eingerichtet: Z
 * Mit **Bearbeiten** lässt sich die ganze Anweisung frei ändern; die automatisch erzeugte dient als Vorlage. Eine eigene Anweisung ersetzt dann die erzeugte vollständig, Einheit, Nachkommastellen und Hinweise werden nicht mehr eingesetzt. **Standard wiederherstellen** kehrt zur erzeugten Anweisung zurück.
 * Es werden so lange Bilder gelesen, bis ein Wert **zweimal gleich** gelesen wurde, höchstens die eingestellte Zahl an Bildern (Standard 4). Gibt es keinen solchen Wert, ist die Ablesung "unlesbar".
 * Der allererste Wert eines Zählers wird zusätzlich durch weitere Bilder (Standard 2) bestätigt, weil es noch nichts gibt, womit er sich vergleichen ließe. Ein falsch gelesener Erstwert (z. B. ohne Komma) würde sonst alle späteren richtigen Werte als "kleiner" verwerfen lassen.
+* Mit **Helligkeit 2. Bild** (0 = aus) wird pro Versuch ein zweites Bild mit anderer Lichthelligkeit aufgenommen (`letztes_2.jpg`), und die KI bekommt beide. Das hilft, wenn bei einer Helligkeit ein Lichtfleck Ziffern überstrahlt und bei der anderen Ziffern zu dunkel sind.
+* Mit **Letzte Stände an die KI** bekommt die KI die letzten 3 gültigen Zählerstände als Hinweis, um eine unklare Ziffer plausibel zu entscheiden. Sie soll trotzdem nur ablesen, was im Bild steht; Mehrheitsentscheid und Plausibilitätsprüfung bleiben unverändert. Ein von Hand gesetzter Stand ersetzt die bisherigen.
 * Steht in der Antwort der KI außer der Zahl nur eine Einheit oder eine Bezeichnung ("1234,5 m³", "Zählerstand: 1234.5"), zählt die Zahl.
 
 ### Plausibilitätsprüfung

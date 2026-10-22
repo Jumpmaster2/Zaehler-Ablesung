@@ -6,7 +6,7 @@ import asyncio
 import contextlib
 import shutil
 from collections.abc import AsyncIterator, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -24,6 +24,7 @@ from .const import (
     CHECK_EVERY_MINUTES,
     CONF_AI_TASK,
     CONF_BRIGHTNESS,
+    CONF_BRIGHTNESS_2,
     CONF_CAMERA,
     CONF_CONDITION,
     CONF_CONFIRMATIONS,
@@ -36,6 +37,7 @@ from .const import (
     CONF_ENHANCE,
     CONF_EXPOSURE,
     CONF_HINTS,
+    CONF_HISTORY_HINT,
     CONF_INTERVAL,
     CONF_INTERVAL_OFF,
     CONF_LIGHT,
@@ -56,12 +58,14 @@ from .const import (
     DEFAULTS,
     DOMAIN,
     EVENT_READING,
+    HISTORY_KEEP,
     IMAGE_NAME,
     LOGGER,
     MEDIA_FOLDER,
     ORIGINAL_NAME,
     REJECTED_FOLDER,
     REJECTED_KEEP,
+    SECOND_IMAGE_NAME,
     SIGNAL_UPDATE,
     STORAGE_VERSION,
     SUBENTRY_METER,
@@ -69,7 +73,7 @@ from .const import (
 )
 from .logic import reading as rd
 from .logic.image import needs_processing, process, thumbnail
-from .logic.prompt import effective_instructions
+from .logic.prompt import context_notes, effective_instructions
 from .logic.units import rate_unit
 
 type MeterConfigEntry = ConfigEntry[MeterManager]
@@ -97,6 +101,11 @@ class MeterState:
     # rejected or corrected values of the same kind in a row
     streak_status: str | None = None
     streak: int = 0
+    # last valid values, oldest first: [time (ISO), value]
+    history: list[list[Any]] = field(default_factory=list)
+
+    def remember(self, when: datetime, value: float) -> None:
+        self.history = [*self.history, [when.isoformat(), value]][-HISTORY_KEEP:]
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -111,6 +120,7 @@ class MeterState:
             "failures": self.failures,
             "streak_status": self.streak_status,
             "streak": self.streak,
+            "history": self.history,
         }
 
     @classmethod
@@ -132,6 +142,7 @@ class MeterState:
             failures=int(data.get("failures") or 0),
             streak_status=data.get("streak_status"),
             streak=int(data.get("streak") or 0),
+            history=list(data.get("history") or []),
         )
 
 
@@ -210,13 +221,13 @@ class Meter:
 
     # ------------------------------------------------------------ picture
 
-    async def _light(self, on: bool) -> None:
+    async def _light(self, on: bool, brightness: int | None = None) -> None:
         light = self.opt(CONF_LIGHT)
         if not light:
             return
         data: dict[str, Any] = {"entity_id": light}
         if on:
-            data["brightness_pct"] = int(self.opt(CONF_BRIGHTNESS))
+            data["brightness_pct"] = brightness or int(self.opt(CONF_BRIGHTNESS))
         await self.hass.services.async_call(
             "light", "turn_on" if on else "turn_off", data, blocking=True
         )
@@ -243,11 +254,7 @@ class Meter:
                 LOGGER.warning("%s: could not switch the light on: %s", self.title, err)
             await asyncio.sleep(float(self.opt(CONF_WARMUP)))
             # the first pictures after a pause still come from the buffers (without light)
-            for _ in range(int(self.opt(CONF_DISCARD))):
-                with contextlib.suppress(HomeAssistantError, TimeoutError):
-                    await self._get_image()
-            if int(self.opt(CONF_DISCARD)):
-                await asyncio.sleep(SETTLE_SECONDS)
+            await self._skip_buffered()
             yield
         finally:
             if not was_on:
@@ -255,6 +262,39 @@ class Meter:
                     await self._light(False)
                 except HomeAssistantError as err:
                     LOGGER.warning("%s: could not switch the light off: %s", self.title, err)
+
+    async def _skip_buffered(self) -> None:
+        """Skip the pictures still in the camera buffers, taken before the light changed."""
+        for _ in range(int(self.opt(CONF_DISCARD))):
+            with contextlib.suppress(HomeAssistantError, TimeoutError):
+                await self._get_image()
+        if int(self.opt(CONF_DISCARD)):
+            await asyncio.sleep(SETTLE_SECONDS)
+
+    @property
+    def second_brightness(self) -> int:
+        """Light brightness of the second picture of a run (0: no second picture)."""
+        return int(self.opt(CONF_BRIGHTNESS_2) or 0) if self.opt(CONF_LIGHT) else 0
+
+    async def _take_second_picture(self) -> bool:
+        """The same picture with the other light brightness (inside a session); the light
+        is set back afterwards."""
+        try:
+            await self._light(True, self.second_brightness)
+            await self._skip_buffered()
+            content = await self._get_image()
+        except (HomeAssistantError, TimeoutError) as err:
+            LOGGER.warning("%s: no second picture: %s", self.title, err)
+            return False
+        finally:
+            with contextlib.suppress(HomeAssistantError):
+                await self._light(True)
+                await self._skip_buffered()
+        await self.hass.async_add_executor_job(self._store_second_image, content)
+        return True
+
+    def _store_second_image(self, content: bytes) -> None:
+        (self.folder / SECOND_IMAGE_NAME).write_bytes(process(content, *self._crop()))
 
     async def async_take_picture(self) -> bytes | None:
         """One picture (inside a session), stored as original and as the picture the AI reads."""
@@ -341,12 +381,32 @@ class Meter:
 
     # ------------------------------------------------------------ reading
 
-    async def _ask_ai(self) -> str:
+    def _history_for_ai(self) -> list[tuple[str, float]]:
+        """Last valid values with local time, oldest first; the current value when there
+        is no history yet (e.g. after an update)."""
+        entries = self.state.history
+        if not entries and self.state.value is not None and self.state.value_time:
+            entries = [[self.state.value_time.isoformat(), self.state.value]]
+        result = []
+        for when, value in entries:
+            moment = dt_util.parse_datetime(when)
+            text = dt_util.as_local(moment).strftime("%d.%m. %H:%M") if moment else ""
+            result.append((text, float(value)))
+        return result
+
+    async def _ask_ai(self, second: bool = False) -> str:
         entity_id = self.ai_task_entity
         if not entity_id:
             LOGGER.warning("%s: no AI task entity configured", self.title)
             return rd.ERROR
-        instructions = effective_instructions(
+        notes = context_notes(
+            self.hass.config.language,
+            2 if second else 1,
+            self._history_for_ai() if self.opt(CONF_HISTORY_HINT) else None,
+            self.unit,
+            self.decimals,
+        )
+        instructions = notes + effective_instructions(
             self.opt(CONF_PROMPT),
             self.opt(CONF_TYPE),
             self.unit,
@@ -354,6 +414,18 @@ class Meter:
             self.opt(CONF_HINTS),
             self.hass.config.language,
         )
+        attachments = [
+            {"media_content_id": self.media_content_id, "media_content_type": "image/jpeg"}
+        ]
+        if second:
+            attachments.append(
+                {
+                    "media_content_id": self.media_content_id.replace(
+                        IMAGE_NAME, SECOND_IMAGE_NAME
+                    ),
+                    "media_content_type": "image/jpeg",
+                }
+            )
         de = (self.hass.config.language or "").startswith("de")
         task_name = f"{self.title} ablesen" if de else f"Read {self.title}"
         try:
@@ -364,12 +436,7 @@ class Meter:
                     "task_name": task_name,
                     "entity_id": entity_id,
                     "instructions": instructions,
-                    "attachments": [
-                        {
-                            "media_content_id": self.media_content_id,
-                            "media_content_type": "image/jpeg",
-                        }
-                    ],
+                    "attachments": attachments,
                 },
                 blocking=True,
                 return_response=True,
@@ -382,10 +449,11 @@ class Meter:
         return rd.normalize(answer)
 
     async def async_single(self) -> str:
-        """One picture, read by the AI."""
+        """One picture (and the one with the second brightness), read by the AI."""
         if await self.async_take_picture() is None:
             return rd.ERROR
-        return await self._ask_ai()
+        second = bool(self.second_brightness) and await self._take_second_picture()
+        return await self._ask_ai(second)
 
     async def async_picture_only(self) -> bool:
         """Test picture (e.g. to try the light), not read."""
@@ -453,6 +521,7 @@ class Meter:
         if valid and value is not None:
             state.value = value
             state.value_time = now
+            state.remember(now, value)
             if not result.keep:
                 state.rate = result.value
         self.manager.async_save()
@@ -536,6 +605,9 @@ class Meter:
         now = dt_util.utcnow()
         self.state.value = round(float(value), 6)
         self.state.value_time = now
+        # a value set by hand replaces the history: the old values may have been wrong
+        self.state.history = []
+        self.state.remember(now, self.state.value)
         self.state.status = rd.STATUS_MANUAL
         self.state.rate = None
         self.state.failures = 0

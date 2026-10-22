@@ -61,6 +61,7 @@
                 "camera": "Camera",
                 "light": "Light",
                 "light_brightness": "Light brightness",
+                "light_brightness_2": "Brightness 2nd picture",
                 "warmup": "Warm-up time",
                 "discard_frames": "Discarded pictures"
               },
@@ -68,6 +69,7 @@
                 "camera": "Camera entity pointed at the display (e.g. an ESP32-CAM with ESPHome).",
                 "light": "Optional. Switched on for the picture and off again afterwards (e.g. the flash LED).",
                 "light_brightness": "Brightness of the light for the picture. Try it with a test picture: reflections make the display unreadable.",
+                "light_brightness_2": "Optional (0 = off): each attempt also takes a second picture with this brightness, and the AI gets both. Helps when at one brightness a light spot outshines digits and at the other digits are too dark. An attempt takes longer.",
                 "warmup": "Wait after switching the light on, so the camera adjusts its exposure.",
                 "discard_frames": "Pictures thrown away before the real one. Cameras with a buffer (ESP32-CAM) otherwise deliver an old picture without light."
               }
@@ -132,6 +134,7 @@
                 "max_correction": "Largest correction",
                 "max_attempts": "Pictures per reading",
                 "confirmations": "Confirmation pictures",
+                "history_hint": "Last readings to the AI",
                 "meter_ai_task_entity": "Own AI task"
               },
               "data_description": {
@@ -139,6 +142,7 @@
                 "max_correction": "In the meter unit. A smaller value than before is only taken when it is at most this much lower and confirmed by further pictures.",
                 "max_attempts": "Most pictures until a value has been read twice.",
                 "confirmations": "Further pictures that must all show a smaller value before it is taken as a correction.",
+                "history_hint": "The AI gets the last 3 valid readings as a hint, to decide an unclear digit plausibly. It should still read only what the picture shows; the checks here stay in place. Can tempt the AI to name an expected value, so use it mainly for displays that are hard to read.",
                 "meter_ai_task_entity": "Optional. Instead of the AI task of the integration."
               }
             },
@@ -174,6 +178,7 @@
                 "camera": "Camera",
                 "light": "Light",
                 "light_brightness": "Light brightness",
+                "light_brightness_2": "Brightness 2nd picture",
                 "warmup": "Warm-up time",
                 "discard_frames": "Discarded pictures"
               },
@@ -181,6 +186,7 @@
                 "camera": "Camera entity pointed at the display (e.g. an ESP32-CAM with ESPHome).",
                 "light": "Optional. Switched on for the picture and off again afterwards (e.g. the flash LED).",
                 "light_brightness": "Brightness of the light for the picture. Try it with a test picture: reflections make the display unreadable.",
+                "light_brightness_2": "Optional (0 = off): each attempt also takes a second picture with this brightness, and the AI gets both. Helps when at one brightness a light spot outshines digits and at the other digits are too dark. An attempt takes longer.",
                 "warmup": "Wait after switching the light on, so the camera adjusts its exposure.",
                 "discard_frames": "Pictures thrown away before the real one. Cameras with a buffer (ESP32-CAM) otherwise deliver an old picture without light."
               }
@@ -245,6 +251,7 @@
                 "max_correction": "Largest correction",
                 "max_attempts": "Pictures per reading",
                 "confirmations": "Confirmation pictures",
+                "history_hint": "Last readings to the AI",
                 "meter_ai_task_entity": "Own AI task"
               },
               "data_description": {
@@ -252,6 +259,7 @@
                 "max_correction": "In the meter unit. A smaller value than before is only taken when it is at most this much lower and confirmed by further pictures.",
                 "max_attempts": "Most pictures until a value has been read twice.",
                 "confirmations": "Further pictures that must all show a smaller value before it is taken as a correction.",
+                "history_hint": "The AI gets the last 3 valid readings as a hint, to decide an unclear digit plausibly. It should still read only what the picture shows; the checks here stay in place. Can tempt the AI to name an expected value, so use it mainly for displays that are hard to read.",
                 "meter_ai_task_entity": "Optional. Instead of the AI task of the integration."
               }
             },

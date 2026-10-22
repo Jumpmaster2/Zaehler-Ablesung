@@ -24,6 +24,8 @@ Everything is set up in the **Zähler-Ablesung** dashboard in the sidebar: add a
 * **Edit** lets you change the whole instructions freely, starting from the generated ones. Own instructions then replace the generated ones completely; unit, decimals and hints are no longer inserted. **Restore standard** goes back to the generated instructions.
 * Pictures are read until one value was read **twice**, at most the configured number of pictures (default 4). Without such a value the reading is "unreadable".
 * The very first value of a meter is also confirmed by further pictures (default 2), as there is nothing yet to compare it with. A wrong first value (e.g. without the decimal point) would otherwise make every later correct value be rejected as "smaller".
+* With **brightness 2nd picture** (0 = off) each attempt also takes a second picture with other light brightness (`letztes_2.jpg`), and the AI gets both. This helps when at one brightness a light spot outshines digits and at the other digits are too dark.
+* With **last readings to the AI** the AI gets the last 3 valid readings as a hint, to decide an unclear digit plausibly. It should still read only what the picture shows; majority vote and plausibility check stay the same. A reading set by hand replaces the earlier ones.
 * If the answer of the AI holds only a unit or a label besides the number ("1234,5 m³", "Reading: 1234.5"), the number counts.
 
 ### Plausibility check
