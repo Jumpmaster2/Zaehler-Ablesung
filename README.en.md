@@ -15,7 +15,7 @@ Everything is set up in the **Zähler-Ablesung** dashboard in the sidebar: add a
 1. The light (e.g. the flash LED of the ESP32-CAM) is switched on with the configured brightness, once for all pictures of a reading.
 2. After the warm-up time a few pictures are thrown away. Otherwise the ESP32-CAM still delivers an old picture without light from its buffer after a pause.
 3. The pictures are taken, then the light goes off. If it was already on before (e.g. for the live picture), it stays on.
-4. Optionally the picture is rotated by any angle (up to ±180°), cropped to the **picture crop** and its **exposure** adjusted. This matters for wide-angle cameras where the display is otherwise only a small strip. In the dashboard the last picture is turned straight and the crop drawn over it with mouse or finger. When mounting the camera the **live picture** there helps (with the light on if wanted), without taking a test picture each time.
+4. Optionally the picture is rotated by any angle (up to ±180°), cropped to the **picture crop** and its **exposure** adjusted. This matters for wide-angle cameras where the display is otherwise only a small strip. In the dashboard the last picture is turned straight and the crop drawn over it with mouse or finger. With **enhance picture** it is also turned grey, evenly lit and given more contrast, which helps with a bright spot of the light on the display glass or pale LCD digits. When mounting the camera the **live picture** there helps (with the light on if wanted), without taking a test picture each time.
 5. The picture the AI gets is stored as `/media/zaehler_ablesung/<meter id>/letztes.jpg` (the uncropped one as `original.jpg`) and shown by the camera entity **Last picture**.
 
 ### Reading with a majority vote

@@ -52,6 +52,7 @@ CONF_CROP_RIGHT = "crop_right"
 CONF_CROP_BOTTOM = "crop_bottom"
 CONF_ROTATE = "rotate"
 CONF_EXPOSURE = "exposure"
+CONF_ENHANCE = "enhance"
 CONF_UNIT = "unit"
 CONF_DECIMALS = "decimals"
 CONF_HINTS = "hints"
@@ -96,6 +97,7 @@ METER_DEFAULTS = {
     CONF_CROP_BOTTOM: 100,
     CONF_ROTATE: 0,
     CONF_EXPOSURE: 100,
+    CONF_ENHANCE: False,
     CONF_INTERVAL: 60,
     CONF_INTERVAL_OFF: 360,
     CONF_MAX_ATTEMPTS: 4,

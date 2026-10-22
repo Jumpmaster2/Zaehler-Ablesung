@@ -62,6 +62,10 @@ export const LABELS = {
     "Belichtung",
     "Helligkeit des Bildes für die KI: 100 % lässt es unverändert, darunter dunkler (gegen Spiegelungen und Überbelichtung), darüber heller."
    ],
+   "enhance": [
+    "Bild aufbereiten",
+    "Macht das Bild grau, gleicht die Ausleuchtung aus und hebt den Kontrast an, bevor die KI es liest. Hilft, wenn das Licht einen hellen Fleck auf dem Displayglas und dunkle Ecken hinterlässt, oder bei blassen LCD-Segmenten. Im Live-Bild nicht zu sehen, dafür ein Testbild machen."
+   ],
    "unit": [
     "Einheit",
     "Einheit auf der Anzeige (z. B. MWh, kWh oder m³)."
@@ -248,6 +252,10 @@ export const LABELS = {
    "exposure": [
     "Exposure",
     "Brightness of the picture for the AI: 100 % leaves it unchanged, below is darker (against reflections and overexposure), above is brighter."
+   ],
+   "enhance": [
+    "Enhance picture",
+    "Turns the picture grey, evens out the lighting and stretches the contrast before the AI reads it. Helps when the light leaves a bright spot on the display glass and dark corners, or with pale LCD segments. Not shown in the live picture; take a test picture to see it."
    ],
    "unit": [
     "Unit",

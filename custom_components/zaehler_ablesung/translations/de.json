@@ -81,7 +81,8 @@
                 "crop_right": "Rechts",
                 "crop_bottom": "Unten",
                 "rotate": "Drehen",
-                "exposure": "Belichtung"
+                "exposure": "Belichtung",
+                "enhance": "Bild aufbereiten"
               },
               "data_description": {
                 "crop_left": "Linker Rand des Ausschnitts in Prozent der Breite des gedrehten Bildes.",
@@ -89,7 +90,8 @@
                 "crop_right": "Rechter Rand des Ausschnitts in Prozent der Breite des gedrehten Bildes.",
                 "crop_bottom": "Unterer Rand des Ausschnitts in Prozent der Höhe des gedrehten Bildes.",
                 "rotate": "Dreht das Bild im Uhrzeigersinn um diesen Winkel (negativ: gegen den Uhrzeigersinn), z. B. 90 für eine seitlich montierte Kamera oder ein paar Grad für eine schief sitzende Anzeige. Gedreht wird vor dem Zuschneiden, der Ausschnitt bezieht sich auf das gedrehte Bild.",
-                "exposure": "Helligkeit des Bildes für die KI: 100 % lässt es unverändert, darunter dunkler (gegen Spiegelungen und Überbelichtung), darüber heller."
+                "exposure": "Helligkeit des Bildes für die KI: 100 % lässt es unverändert, darunter dunkler (gegen Spiegelungen und Überbelichtung), darüber heller.",
+                "enhance": "Macht das Bild grau, gleicht die Ausleuchtung aus und hebt den Kontrast an, bevor die KI es liest. Hilft, wenn das Licht einen hellen Fleck auf dem Displayglas und dunkle Ecken hinterlässt, oder bei blassen LCD-Segmenten. Im Live-Bild nicht zu sehen, dafür ein Testbild machen."
               }
             },
             "display_section": {
@@ -192,7 +194,8 @@
                 "crop_right": "Rechts",
                 "crop_bottom": "Unten",
                 "rotate": "Drehen",
-                "exposure": "Belichtung"
+                "exposure": "Belichtung",
+                "enhance": "Bild aufbereiten"
               },
               "data_description": {
                 "crop_left": "Linker Rand des Ausschnitts in Prozent der Breite des gedrehten Bildes.",
@@ -200,7 +203,8 @@
                 "crop_right": "Rechter Rand des Ausschnitts in Prozent der Breite des gedrehten Bildes.",
                 "crop_bottom": "Unterer Rand des Ausschnitts in Prozent der Höhe des gedrehten Bildes.",
                 "rotate": "Dreht das Bild im Uhrzeigersinn um diesen Winkel (negativ: gegen den Uhrzeigersinn), z. B. 90 für eine seitlich montierte Kamera oder ein paar Grad für eine schief sitzende Anzeige. Gedreht wird vor dem Zuschneiden, der Ausschnitt bezieht sich auf das gedrehte Bild.",
-                "exposure": "Helligkeit des Bildes für die KI: 100 % lässt es unverändert, darunter dunkler (gegen Spiegelungen und Überbelichtung), darüber heller."
+                "exposure": "Helligkeit des Bildes für die KI: 100 % lässt es unverändert, darunter dunkler (gegen Spiegelungen und Überbelichtung), darüber heller.",
+                "enhance": "Macht das Bild grau, gleicht die Ausleuchtung aus und hebt den Kontrast an, bevor die KI es liest. Hilft, wenn das Licht einen hellen Fleck auf dem Displayglas und dunkle Ecken hinterlässt, oder bei blassen LCD-Segmenten. Im Live-Bild nicht zu sehen, dafür ein Testbild machen."
               }
             },
             "display_section": {

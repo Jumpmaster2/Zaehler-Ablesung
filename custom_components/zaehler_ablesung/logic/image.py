@@ -59,12 +59,34 @@ def needs_processing(
     bottom: float,
     rotate: str | float = 0,
     exposure: float = 100,
+    enhance: bool = False,
 ) -> bool:
     return (
-        rotation(rotate) != 0
+        bool(enhance)
+        or rotation(rotate) != 0
         or float(exposure) != 100
         or crop_box(100, 100, left, top, right, bottom) is not None
     )
+
+
+def enhanced(image):
+    """Grey picture with even lighting and full contrast.
+
+    A light next to the lens leaves a bright spot on the display glass and dark
+    corners. Dividing by a strongly blurred copy evens out the lighting, so the
+    segments stand out the same everywhere; then the contrast is stretched.
+    """
+    from PIL import ImageFilter, ImageMath, ImageOps
+
+    grey = image.convert("L").filter(ImageFilter.MedianFilter(3))
+    # much wider than a segment, so the blurred copy only holds the lighting
+    background = grey.filter(ImageFilter.GaussianBlur(max(4, max(grey.size) / 25)))
+    even = ImageMath.lambda_eval(
+        lambda a: a["convert"](a["grey"] * 128 / (a["background"] + 4), "L"),
+        grey=grey,
+        background=background,
+    )
+    return ImageOps.autocontrast(even, cutoff=1).convert("RGB")
 
 
 def process(
@@ -75,9 +97,10 @@ def process(
     bottom: float = 100,
     rotate: str | float = 0,
     exposure: float = 100,
+    enhance: bool = False,
 ) -> bytes:
-    """Rotated, cropped and brightened JPEG; the original when nothing is to do or it cannot be decoded."""
-    if not needs_processing(left, top, right, bottom, rotate, exposure):
+    """Rotated, cropped, brightened and enhanced JPEG; the original when nothing is to do or it cannot be decoded."""
+    if not needs_processing(left, top, right, bottom, rotate, exposure, enhance):
         return content
     from PIL import Image, ImageEnhance, UnidentifiedImageError
 
@@ -107,6 +130,8 @@ def process(
     factor = max(low, min(high, float(exposure))) / 100
     if factor != 1:
         image = ImageEnhance.Brightness(image).enhance(factor)
+    if enhance:
+        image = enhanced(image)
     out = io.BytesIO()
     image.save(out, format="JPEG", quality=92)
     return out.getvalue()

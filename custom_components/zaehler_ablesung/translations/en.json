@@ -81,7 +81,8 @@
                 "crop_right": "Right",
                 "crop_bottom": "Bottom",
                 "rotate": "Rotate",
-                "exposure": "Exposure"
+                "exposure": "Exposure",
+                "enhance": "Enhance picture"
               },
               "data_description": {
                 "crop_left": "Left edge of the crop in percent of the width of the turned picture.",
@@ -89,7 +90,8 @@
                 "crop_right": "Right edge of the crop in percent of the width of the turned picture.",
                 "crop_bottom": "Bottom edge of the crop in percent of the height of the turned picture.",
                 "rotate": "Turns the picture clockwise by this angle (negative: counterclockwise), e.g. 90 for a camera mounted sideways or a few degrees for a display that sits askew. Turned before cropping, the crop refers to the turned picture.",
-                "exposure": "Brightness of the picture for the AI: 100 % leaves it unchanged, below is darker (against reflections and overexposure), above is brighter."
+                "exposure": "Brightness of the picture for the AI: 100 % leaves it unchanged, below is darker (against reflections and overexposure), above is brighter.",
+                "enhance": "Turns the picture grey, evens out the lighting and stretches the contrast before the AI reads it. Helps when the light leaves a bright spot on the display glass and dark corners, or with pale LCD segments. Not shown in the live picture; take a test picture to see it."
               }
             },
             "display_section": {
@@ -192,7 +194,8 @@
                 "crop_right": "Right",
                 "crop_bottom": "Bottom",
                 "rotate": "Rotate",
-                "exposure": "Exposure"
+                "exposure": "Exposure",
+                "enhance": "Enhance picture"
               },
               "data_description": {
                 "crop_left": "Left edge of the crop in percent of the width of the turned picture.",
@@ -200,7 +203,8 @@
                 "crop_right": "Right edge of the crop in percent of the width of the turned picture.",
                 "crop_bottom": "Bottom edge of the crop in percent of the height of the turned picture.",
                 "rotate": "Turns the picture clockwise by this angle (negative: counterclockwise), e.g. 90 for a camera mounted sideways or a few degrees for a display that sits askew. Turned before cropping, the crop refers to the turned picture.",
-                "exposure": "Brightness of the picture for the AI: 100 % leaves it unchanged, below is darker (against reflections and overexposure), above is brighter."
+                "exposure": "Brightness of the picture for the AI: 100 % leaves it unchanged, below is darker (against reflections and overexposure), above is brighter.",
+                "enhance": "Turns the picture grey, evens out the lighting and stretches the contrast before the AI reads it. Helps when the light leaves a bright spot on the display glass and dark corners, or with pale LCD segments. Not shown in the live picture; take a test picture to see it."
               }
             },
             "display_section": {
