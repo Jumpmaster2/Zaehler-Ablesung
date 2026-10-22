@@ -52,17 +52,33 @@ FAILED_STATUSES = (STATUS_ERROR, STATUS_UNREADABLE)
 STREAK_STATUSES = (STATUS_SMALLER, STATUS_TOO_LARGE, STATUS_CORRECTED)
 
 
-def normalize(answer: object) -> str:
-    """One answer of the AI as a number text, UNREADABLE or ERROR."""
-    if answer is None:
-        return ERROR
-    text = str(answer).strip().strip("`").strip().replace(",", ".")
+def _single(text: str) -> str | None:
+    """A number text or UNREADABLE for one line of the answer, None when it is neither."""
+    # markdown emphasis and code marks around the result
+    text = text.replace("*", "").strip().strip("`_").strip().replace(",", ".")
     if _NUMBER.match(text):
         return text
     if match := _LABELLED.match(text):
-        return match.group(1).replace(",", ".")
+        return match.group(1)
     if text.lower().rstrip(".") in ("unlesbar", "unreadable"):
         return UNREADABLE
+    return None
+
+
+def normalize(answer: object) -> str:
+    """One answer of the AI as a number text, UNREADABLE or ERROR.
+
+    Some models explain their reading before the result although they were told
+    not to; then the last line counts.
+    """
+    if answer is None:
+        return ERROR
+    text = str(answer).strip()
+    if (result := _single(text)) is not None:
+        return result
+    lines = [line for line in text.splitlines() if line.strip()]
+    if len(lines) > 1 and (result := _single(lines[-1])) is not None:
+        return result
     return UNREADABLE if text else ERROR
 
 
