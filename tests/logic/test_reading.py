@@ -23,6 +23,12 @@ from logic import reading as rd
         ("", rd.ERROR),
         (None, rd.ERROR),
         (1.261, "1.261"),
+        # an explanation before the result: the last line counts
+        ("Erste Ziffer: 1\nZweite Ziffer: 2, also 1.2xx\n\n1.269", "1.269"),
+        ("Digits: 1, 2, 6, 9.\n**Ergebnis:** 1.269", "1.269"),
+        ("The last digit is too dark.\nunreadable", rd.UNREADABLE),
+        ("Ziffern: 1, 2, 6 und 9 oder 5", rd.UNREADABLE),
+        ("1.269 or 1.268?\nmaybe", rd.UNREADABLE),
     ],
 )
 def test_normalize(answer, expected) -> None:
