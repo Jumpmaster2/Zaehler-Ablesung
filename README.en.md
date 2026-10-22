@@ -6,7 +6,7 @@ Custom integration for Home Assistant that reads meters (heat, water, gas, elect
 
 Everything is set up in the **Zähler-Ablesung** dashboard in the sidebar: add a meter, choose camera and light, try the brightness with a test picture, set interval and checks. No automations, scripts or helpers needed.
 
-> Status: version 0.4.0.
+> Status: version 0.5.0.
 
 ## How it works
 
