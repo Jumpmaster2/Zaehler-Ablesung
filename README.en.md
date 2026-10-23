@@ -18,6 +18,22 @@ Everything is set up in the **Zähler-Ablesung** dashboard in the sidebar: add a
 4. Optionally the picture is rotated by any angle (up to ±180°), cropped to the **picture crop** and its **exposure** adjusted. This matters for wide-angle cameras where the display is otherwise only a small strip. In the dashboard the last picture is turned straight and the crop drawn over it with mouse or finger. With **enhance picture** it is also turned grey, evenly lit and given more contrast, which helps with a bright spot of the light on the display glass or pale LCD digits. When mounting the camera the **live picture** there helps (with the light on if wanted), without taking a test picture each time.
 5. The picture the AI gets is stored as `/media/zaehler_ablesung/<meter id>/letztes.jpg` (the uncropped one as `original.jpg`) and shown by the camera entity **Last picture**.
 
+### External light
+
+When the light of the camera is not enough or reflects, each meter can also switch on an **external light**, e.g. LED modules. Any `light` or `switch` entity works; the section is in the meter editor under **External light**. Without an entity everything works as before.
+
+| Option | Key | Default | Meaning |
+| --- | --- | --- | --- |
+| External light | `external_light` | empty | `light` or `switch` entity; empty = no external light |
+| Mode | `external_light_mode` | Only while taking pictures (`capture`) | `capture`: on before the pictures, off afterwards. Always on (`permanent`): only switched on when it is off, never switched off |
+| Brightness | `external_light_brightness` | 100 % | Only for a `light` entity that can be dimmed; a switch is just switched on and off |
+| Lead time | `external_light_lead_time` | 2 s | Wait (0 to 30 s) after switching it on, before the light of the camera is switched on and the pictures are taken |
+| Switch off afterwards | `external_light_turn_off` | yes | Only in the mode "Only while taking pictures" |
+
+A reading or a test picture in the mode "Only while taking pictures": external light on (a `light` with the configured brightness), wait the lead time, then as above the light of the camera, the pictures and the AI reading them, then the external light off. It is switched off also when taking or reading the pictures fails. When the entity is not available or switching it fails, a warning is logged and the meter is read anyway.
+
+Example: an LED module as `light.zaehler_beleuchtung`, mode "Only while taking pictures", brightness 70 %, lead time 2 s, switch off afterwards. For every reading the module goes on at 70 % 2 seconds before the pictures and off again afterwards.
+
 ### Reading with a majority vote
 
 * The AI gets the picture and instructions built from meter type, unit, decimals and your **hints** (see "Instructions for the AI" in the editor). It answers only with the number or with "unreadable".
