@@ -74,6 +74,24 @@
                 "discard_frames": "Bilder, die vor dem eigentlichen Bild weggeworfen werden. Kameras mit Puffer (ESP32-CAM) liefern sonst ein altes Bild ohne Licht."
               }
             },
+            "external_light_section": {
+              "name": "Externe Beleuchtung",
+              "description": "Optional zusätzliches Licht (light- oder switch-Entität) neben dem Licht der Kamera, z. B. LED-Module. Ist es nicht erreichbar, wird ohne es abgelesen und eine Warnung ins Log geschrieben.",
+              "data": {
+                "external_light": "Externe Beleuchtung",
+                "external_light_mode": "Modus",
+                "external_light_brightness": "Helligkeit",
+                "external_light_lead_time": "Vorlaufzeit",
+                "external_light_turn_off": "Danach ausschalten"
+              },
+              "data_description": {
+                "external_light": "Optional. light- oder switch-Entität, die die Anzeige zusätzlich ausleuchtet. Leer lassen, wenn es keine gibt.",
+                "external_light_mode": "Nur während der Aufnahme: wird vor den Bildern ein- und danach wieder ausgeschaltet. Dauerlicht: wird nur eingeschaltet, falls es aus ist, und bleibt an.",
+                "external_light_brightness": "Nur bei einer dimmbaren light-Entität; ein Schalter wird nur ein- und ausgeschaltet.",
+                "external_light_lead_time": "Wartezeit nach dem Einschalten der externen Beleuchtung, bevor das Licht der Kamera eingeschaltet wird und die Bilder aufgenommen werden.",
+                "external_light_turn_off": "Nur im Modus „Nur während der Aufnahme“: schaltet das Licht nach den Bildern wieder aus, auch wenn Aufnahme oder Auswertung fehlschlagen."
+              }
+            },
             "image_section": {
               "name": "Bildausschnitt",
               "description": "Nur dieser Teil des Bildes geht an die KI. Bei Weitwinkel-Kameras auf die Anzeige zuschneiden; im Dashboard lässt sich der Ausschnitt mit der Maus aufziehen.",
@@ -191,6 +209,24 @@
                 "discard_frames": "Bilder, die vor dem eigentlichen Bild weggeworfen werden. Kameras mit Puffer (ESP32-CAM) liefern sonst ein altes Bild ohne Licht."
               }
             },
+            "external_light_section": {
+              "name": "Externe Beleuchtung",
+              "description": "Optional zusätzliches Licht (light- oder switch-Entität) neben dem Licht der Kamera, z. B. LED-Module. Ist es nicht erreichbar, wird ohne es abgelesen und eine Warnung ins Log geschrieben.",
+              "data": {
+                "external_light": "Externe Beleuchtung",
+                "external_light_mode": "Modus",
+                "external_light_brightness": "Helligkeit",
+                "external_light_lead_time": "Vorlaufzeit",
+                "external_light_turn_off": "Danach ausschalten"
+              },
+              "data_description": {
+                "external_light": "Optional. light- oder switch-Entität, die die Anzeige zusätzlich ausleuchtet. Leer lassen, wenn es keine gibt.",
+                "external_light_mode": "Nur während der Aufnahme: wird vor den Bildern ein- und danach wieder ausgeschaltet. Dauerlicht: wird nur eingeschaltet, falls es aus ist, und bleibt an.",
+                "external_light_brightness": "Nur bei einer dimmbaren light-Entität; ein Schalter wird nur ein- und ausgeschaltet.",
+                "external_light_lead_time": "Wartezeit nach dem Einschalten der externen Beleuchtung, bevor das Licht der Kamera eingeschaltet wird und die Bilder aufgenommen werden.",
+                "external_light_turn_off": "Nur im Modus „Nur während der Aufnahme“: schaltet das Licht nach den Bildern wieder aus, auch wenn Aufnahme oder Auswertung fehlschlagen."
+              }
+            },
             "image_section": {
               "name": "Bildausschnitt",
               "description": "Nur dieser Teil des Bildes geht an die KI. Bei Weitwinkel-Kameras auf die Anzeige zuschneiden; im Dashboard lässt sich der Ausschnitt mit der Maus aufziehen.",
@@ -299,6 +335,12 @@
         "gas": "Gaszähler",
         "electricity": "Stromzähler",
         "other": "Anderer Zähler"
+      }
+    },
+    "external_light_mode": {
+      "options": {
+        "capture": "Nur während der Aufnahme",
+        "permanent": "Dauerlicht"
       }
     }
   },

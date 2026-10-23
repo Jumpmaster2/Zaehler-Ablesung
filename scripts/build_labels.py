@@ -36,14 +36,17 @@ def labels(translation: dict[str, Any]) -> dict[str, Any]:
     for sec in details["sections"].values():
         _add(fields, sec)
     entity = translation["entity"]
+    selectors = translation["selector"]
     return {
+        # options of the other select fields, under their translation key
+        **{k: v["options"] for k, v in selectors.items() if k != "meter_type"},
         "fields": fields,
         "sections": {
             k: [v["name"], v.get("description", "")] for k, v in details["sections"].items()
         },
         "errors": meter["error"],
         "status": entity["sensor"]["status"]["state"],
-        "types": translation["selector"]["meter_type"]["options"],
+        "types": selectors["meter_type"]["options"],
         "entities": {
             key: value["name"] for platform in entity.values() for key, value in platform.items()
         },

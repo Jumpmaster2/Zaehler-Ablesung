@@ -28,6 +28,11 @@ async def test_config_payload(hass: HomeAssistant, base, hass_ws_client) -> None
     sections = {s["id"]: s["fields"] for s in cfg["meter_sections"]}
     assert sections["camera_section"]["camera"]["domain"] == ["camera"]
     assert sections["display_section"]["hints"]["multiline"] is True
+    external = sections["external_light_section"]
+    assert external["external_light"]["domain"] == ["light", "switch"]
+    assert external["external_light_mode"]["options"] == ["capture", "permanent"]
+    assert external["external_light_mode"]["translation_key"] == "external_light_mode"
+    assert heat["data"]["external_light_mode"] == "capture"
     assert cfg["type_defaults"]["water"]["unit"] == "m³"
     assert cfg["option_specs"]["ai_task_entity"]["domain"] == ["ai_task"]
 
@@ -71,6 +76,28 @@ async def test_save_and_delete_meter(hass: HomeAssistant, base, hass_ws_client) 
         data={**data, "light_brightness": 500},
     )
     assert msg["error"]["message"] == "invalid_value:light_brightness"
+
+    # external light from the panel; a camera is no light
+    msg = await _send(
+        client,
+        type=f"{DOMAIN}/save_meter",
+        subentry_id=sub_id,
+        title="Water",
+        data={**data, "external_light": "camera.water_cam"},
+    )
+    assert msg["error"]["message"] == "invalid_value:external_light"
+    msg = await _send(
+        client,
+        type=f"{DOMAIN}/save_meter",
+        subentry_id=sub_id,
+        title="Water",
+        data={**data, "external_light": "switch.lamp", "external_light_mode": "permanent"},
+    )
+    assert msg["success"], msg
+    await hass.async_block_till_done()
+    data = entry.subentries[sub_id].data
+    assert data["external_light"] == "switch.lamp"
+    assert data["external_light_mode"] == "permanent"
 
     msg = await _send(client, type=f"{DOMAIN}/set_reading", subentry_id=sub_id, value=12.5)
     assert msg["success"], msg

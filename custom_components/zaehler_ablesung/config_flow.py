@@ -44,6 +44,11 @@ from .const import (
     CONF_DISCARD,
     CONF_ENHANCE,
     CONF_EXPOSURE,
+    CONF_EXTERNAL_LIGHT,
+    CONF_EXTERNAL_LIGHT_BRIGHTNESS,
+    CONF_EXTERNAL_LIGHT_LEAD_TIME,
+    CONF_EXTERNAL_LIGHT_MODE,
+    CONF_EXTERNAL_LIGHT_TURN_OFF,
     CONF_HINTS,
     CONF_HISTORY_HINT,
     CONF_INTERVAL,
@@ -66,11 +71,13 @@ from .const import (
     CONF_WARMUP,
     DEFAULTS,
     DOMAIN,
+    EXTERNAL_LIGHT_MODES,
     METER_SECTIONS,
     NAME,
     SECTION_CAMERA,
     SECTION_CHECKS,
     SECTION_DISPLAY,
+    SECTION_EXTERNAL_LIGHT,
     SECTION_IMAGE,
     SECTION_NOTIFY,
     SECTION_SCHEDULE,
@@ -184,6 +191,21 @@ def meter_sections(v: dict[str, Any]) -> dict[str, vol.Schema]:
                 req(CONF_DISCARD): _number(0, 5, 1),
             }
         ),
+        SECTION_EXTERNAL_LIGHT: vol.Schema(
+            {
+                _opt(CONF_EXTERNAL_LIGHT, v): _entity(["light", "switch"]),
+                req(CONF_EXTERNAL_LIGHT_MODE): SelectSelector(
+                    SelectSelectorConfig(
+                        options=EXTERNAL_LIGHT_MODES,
+                        translation_key=CONF_EXTERNAL_LIGHT_MODE,
+                        mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                req(CONF_EXTERNAL_LIGHT_BRIGHTNESS): _number(1, 100, 1, "%"),
+                req(CONF_EXTERNAL_LIGHT_LEAD_TIME): _number(0, 30, 0.5, "s"),
+                req(CONF_EXTERNAL_LIGHT_TURN_OFF): BooleanSelector(),
+            }
+        ),
         SECTION_IMAGE: vol.Schema(
             {
                 req(CONF_CROP_LEFT): _number(0, 100, 0.5, "%"),
@@ -235,7 +257,7 @@ def meter_sections(v: dict[str, Any]) -> dict[str, vol.Schema]:
     }
 
 
-COLLAPSED = {SECTION_IMAGE, SECTION_CHECKS, SECTION_NOTIFY}
+COLLAPSED = {SECTION_EXTERNAL_LIGHT, SECTION_IMAGE, SECTION_CHECKS, SECTION_NOTIFY}
 
 
 def meter_schema(v: dict[str, Any], with_name: bool) -> vol.Schema:
@@ -251,6 +273,7 @@ INT_KEYS = (
     CONF_BRIGHTNESS,
     CONF_BRIGHTNESS_2,
     CONF_DISCARD,
+    CONF_EXTERNAL_LIGHT_BRIGHTNESS,
     CONF_DECIMALS,
     CONF_MAX_ATTEMPTS,
     CONF_CONFIRMATIONS,

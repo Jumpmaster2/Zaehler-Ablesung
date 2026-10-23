@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import pytest
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.data_entry_flow import FlowResultType, InvalidData
 
 from custom_components.zaehler_ablesung.const import DOMAIN, SUBENTRY_METER
 
@@ -16,6 +17,13 @@ DETAILS = {
         "light_brightness": 40,
         "warmup": 3,
         "discard_frames": 2,
+    },
+    # as the form sends it when no external light is chosen
+    "external_light_section": {
+        "external_light_mode": "capture",
+        "external_light_brightness": 100,
+        "external_light_lead_time": 2,
+        "external_light_turn_off": True,
     },
     "image_section": {
         "crop_left": 0,
@@ -90,6 +98,8 @@ async def test_meter_subentry(hass: HomeAssistant, base) -> None:
     # whole numbers are stored as int
     assert sub.data["notify_failed"] == 5
     assert isinstance(sub.data["notify_failed"], int)
+    # no external light: the entity is not stored
+    assert "external_light" not in sub.data
     assert hass.states.get("sensor.water_meter_reading")
 
     # reconfigure: rename and change the decimals
@@ -118,3 +128,98 @@ async def test_options_flow(hass: HomeAssistant, base) -> None:
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert entry.options["ai_task_entity"] == "ai_task.other"
+
+
+async def test_meter_external_light(hass: HomeAssistant, base) -> None:
+    entry = await setup_entry(hass, meters=[])
+    result = await hass.config_entries.subentries.async_init(
+        (entry.entry_id, SUBENTRY_METER), context={"source": config_entries.SOURCE_USER}
+    )
+    result = await hass.config_entries.subentries.async_configure(
+        result["flow_id"], {"name": "Water", "meter_type": "water"}
+    )
+    # optional, light or switch, with its defaults
+    schema = result["data_schema"].schema
+    section = next(v for k, v in schema.items() if str(k) == "external_light_section")
+    fields = {str(k): k for k in section.schema.schema}
+    assert fields["external_light"].description == {"suggested_value": None}
+    assert section.schema.schema[fields["external_light"]].config["domain"] == ["light", "switch"]
+    assert fields["external_light_mode"].default() == "capture"
+    assert fields["external_light_brightness"].default() == 100
+    assert fields["external_light_lead_time"].default() == 2
+    assert fields["external_light_turn_off"].default() is True
+
+    result = await hass.config_entries.subentries.async_configure(
+        result["flow_id"],
+        {
+            **DETAILS,
+            "external_light_section": {
+                "external_light": "light.meter_lamp",
+                "external_light_mode": "capture",
+                "external_light_brightness": 75.0,
+                "external_light_lead_time": 1.5,
+                "external_light_turn_off": False,
+            },
+        },
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    sub = next(iter(entry.subentries.values()))
+    assert sub.data["external_light"] == "light.meter_lamp"
+    assert sub.data["external_light_brightness"] == 75
+    assert isinstance(sub.data["external_light_brightness"], int)
+    assert sub.data["external_light_lead_time"] == 1.5
+    assert sub.data["external_light_turn_off"] is False
+
+    # change it: a switch, on all the time
+    result = await entry.start_subentry_reconfigure_flow(hass, sub.subentry_id)
+    schema = result["data_schema"].schema
+    section = next(v for k, v in schema.items() if str(k) == "external_light_section")
+    fields = {str(k): k for k in section.schema.schema}
+    assert fields["external_light"].description == {"suggested_value": "light.meter_lamp"}
+    assert fields["external_light_turn_off"].default() is False
+    result = await hass.config_entries.subentries.async_configure(
+        result["flow_id"],
+        {
+            **DETAILS,
+            "name": "Water",
+            "meter_type": "water",
+            "external_light_section": {
+                "external_light": "switch.meter_lamp",
+                "external_light_mode": "permanent",
+                "external_light_brightness": 100,
+                "external_light_lead_time": 0,
+                "external_light_turn_off": True,
+            },
+        },
+    )
+    assert result["reason"] == "reconfigure_successful"
+    data = entry.subentries[sub.subentry_id].data
+    assert data["external_light"] == "switch.meter_lamp"
+    assert data["external_light_mode"] == "permanent"
+
+    # cleared again: no external light
+    result = await entry.start_subentry_reconfigure_flow(hass, sub.subentry_id)
+    result = await hass.config_entries.subentries.async_configure(
+        result["flow_id"], {**DETAILS, "name": "Water", "meter_type": "water"}
+    )
+    assert result["reason"] == "reconfigure_successful"
+    assert "external_light" not in entry.subentries[sub.subentry_id].data
+
+    # only light and switch entities, only the two modes
+    result = await entry.start_subentry_reconfigure_flow(hass, sub.subentry_id)
+    for wrong in (
+        {"external_light": "camera.water_cam"},
+        {"external_light_mode": "sometimes"},
+        {"external_light_lead_time": 31},
+    ):
+        with pytest.raises(InvalidData):
+            await hass.config_entries.subentries.async_configure(
+                result["flow_id"],
+                {
+                    **DETAILS,
+                    "name": "Water",
+                    "meter_type": "water",
+                    "external_light_section": {**DETAILS["external_light_section"], **wrong},
+                },
+            )
