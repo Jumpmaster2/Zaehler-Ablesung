@@ -51,6 +51,16 @@ CONF_BRIGHTNESS = "light_brightness"
 CONF_BRIGHTNESS_2 = "light_brightness_2"
 CONF_WARMUP = "warmup"
 CONF_DISCARD = "discard_frames"
+# external light (light or switch entity) besides the light of the camera
+CONF_EXTERNAL_LIGHT = "external_light"
+CONF_EXTERNAL_LIGHT_MODE = "external_light_mode"
+CONF_EXTERNAL_LIGHT_BRIGHTNESS = "external_light_brightness"
+CONF_EXTERNAL_LIGHT_LEAD_TIME = "external_light_lead_time"
+CONF_EXTERNAL_LIGHT_TURN_OFF = "external_light_turn_off"
+# only during the pictures, or on all the time (only switched on when it is off)
+EXTERNAL_LIGHT_CAPTURE = "capture"
+EXTERNAL_LIGHT_PERMANENT = "permanent"
+EXTERNAL_LIGHT_MODES = [EXTERNAL_LIGHT_CAPTURE, EXTERNAL_LIGHT_PERMANENT]
 CONF_CROP_LEFT = "crop_left"
 CONF_CROP_TOP = "crop_top"
 CONF_CROP_RIGHT = "crop_right"
@@ -78,6 +88,7 @@ CONF_NOTIFY_CORRECTED = "notify_corrected"
 CONF_NOTIFY_FAILED = "notify_failed"
 
 SECTION_CAMERA = "camera_section"
+SECTION_EXTERNAL_LIGHT = "external_light_section"
 SECTION_IMAGE = "image_section"
 SECTION_DISPLAY = "display_section"
 SECTION_SCHEDULE = "schedule_section"
@@ -85,6 +96,7 @@ SECTION_CHECKS = "checks_section"
 SECTION_NOTIFY = "notify_section"
 METER_SECTIONS = (
     SECTION_CAMERA,
+    SECTION_EXTERNAL_LIGHT,
     SECTION_IMAGE,
     SECTION_DISPLAY,
     SECTION_SCHEDULE,
@@ -98,6 +110,10 @@ METER_DEFAULTS = {
     CONF_BRIGHTNESS_2: 0,
     CONF_WARMUP: 3,
     CONF_DISCARD: 2,
+    CONF_EXTERNAL_LIGHT_MODE: EXTERNAL_LIGHT_CAPTURE,
+    CONF_EXTERNAL_LIGHT_BRIGHTNESS: 100,
+    CONF_EXTERNAL_LIGHT_LEAD_TIME: 2,
+    CONF_EXTERNAL_LIGHT_TURN_OFF: True,
     CONF_CROP_LEFT: 0,
     CONF_CROP_TOP: 0,
     CONF_CROP_RIGHT: 100,

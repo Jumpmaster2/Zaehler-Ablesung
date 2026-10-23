@@ -1,6 +1,10 @@
 // Generated from the translation files by scripts/build_labels.py, do not edit by hand.
 export const LABELS = {
  "de": {
+  "external_light_mode": {
+   "capture": "Nur während der Aufnahme",
+   "permanent": "Dauerlicht"
+  },
   "fields": {
    "ai_task_entity": [
     "KI-Aufgabe",
@@ -41,6 +45,26 @@ export const LABELS = {
    "discard_frames": [
     "Verworfene Bilder",
     "Bilder, die vor dem eigentlichen Bild weggeworfen werden. Kameras mit Puffer (ESP32-CAM) liefern sonst ein altes Bild ohne Licht."
+   ],
+   "external_light": [
+    "Externe Beleuchtung",
+    "Optional. light- oder switch-Entität, die die Anzeige zusätzlich ausleuchtet. Leer lassen, wenn es keine gibt."
+   ],
+   "external_light_mode": [
+    "Modus",
+    "Nur während der Aufnahme: wird vor den Bildern ein- und danach wieder ausgeschaltet. Dauerlicht: wird nur eingeschaltet, falls es aus ist, und bleibt an."
+   ],
+   "external_light_brightness": [
+    "Helligkeit",
+    "Nur bei einer dimmbaren light-Entität; ein Schalter wird nur ein- und ausgeschaltet."
+   ],
+   "external_light_lead_time": [
+    "Vorlaufzeit",
+    "Wartezeit nach dem Einschalten der externen Beleuchtung, bevor das Licht der Kamera eingeschaltet wird und die Bilder aufgenommen werden."
+   ],
+   "external_light_turn_off": [
+    "Danach ausschalten",
+    "Nur im Modus „Nur während der Aufnahme“: schaltet das Licht nach den Bildern wieder aus, auch wenn Aufnahme oder Auswertung fehlschlagen."
    ],
    "crop_left": [
     "Links",
@@ -144,6 +168,10 @@ export const LABELS = {
     "Kamera und Licht",
     "Kamera am Zähler und das Licht, das für das Bild eingeschaltet wird."
    ],
+   "external_light_section": [
+    "Externe Beleuchtung",
+    "Optional zusätzliches Licht (light- oder switch-Entität) neben dem Licht der Kamera, z. B. LED-Module. Ist es nicht erreichbar, wird ohne es abgelesen und eine Warnung ins Log geschrieben."
+   ],
    "image_section": [
     "Bildausschnitt",
     "Nur dieser Teil des Bildes geht an die KI. Bei Weitwinkel-Kameras auf die Anzeige zuschneiden; im Dashboard lässt sich der Ausschnitt mit der Maus aufziehen."
@@ -200,6 +228,10 @@ export const LABELS = {
   }
  },
  "en": {
+  "external_light_mode": {
+   "capture": "Only while taking pictures",
+   "permanent": "Always on"
+  },
   "fields": {
    "ai_task_entity": [
     "AI task",
@@ -240,6 +272,26 @@ export const LABELS = {
    "discard_frames": [
     "Discarded pictures",
     "Pictures thrown away before the real one. Cameras with a buffer (ESP32-CAM) otherwise deliver an old picture without light."
+   ],
+   "external_light": [
+    "External light",
+    "Optional. Light or switch entity that lights the display in addition. Leave empty when there is none."
+   ],
+   "external_light_mode": [
+    "Mode",
+    "Only while taking pictures: switched on before the pictures and off afterwards. Always on: only switched on when it is off, and left on."
+   ],
+   "external_light_brightness": [
+    "Brightness",
+    "Only for a light entity that can be dimmed; a switch is just switched on and off."
+   ],
+   "external_light_lead_time": [
+    "Lead time",
+    "Wait after switching the external light on, before the light of the camera is switched on and the pictures are taken."
+   ],
+   "external_light_turn_off": [
+    "Switch off afterwards",
+    "Only in the mode \"Only while taking pictures\": switches the light off after the pictures, also when taking or reading them fails."
    ],
    "crop_left": [
     "Left",
@@ -342,6 +394,10 @@ export const LABELS = {
    "camera_section": [
     "Camera and light",
     "Camera of the meter and the light that is switched on for the picture."
+   ],
+   "external_light_section": [
+    "External light",
+    "Optional extra light (light or switch entity) besides the light of the camera, e.g. LED modules. When it cannot be reached, the meter is read without it and a warning is logged."
    ],
    "image_section": [
     "Picture crop",

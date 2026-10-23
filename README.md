@@ -18,6 +18,22 @@ Alles wird im Dashboard **Zähler-Ablesung** in der Seitenleiste eingerichtet: Z
 4. Optional wird das Bild um einen beliebigen Winkel (bis ±180°) gedreht, auf den **Bildausschnitt** zugeschnitten und in der **Belichtung** angepasst. Das ist bei Weitwinkel-Kameras wichtig, auf denen die Anzeige sonst nur ein kleiner Streifen ist. Im Dashboard dreht man das letzte Bild gerade und zieht den Ausschnitt mit Maus oder Finger darüber auf. Mit **Bild aufbereiten** wird das Bild außerdem grau, gleichmäßig ausgeleuchtet und kontrastreicher, was bei einem hellen Lichtfleck auf dem Displayglas oder blassen LCD-Ziffern hilft. Beim Einrichten der Kamera hilft das **Livebild** dort (auf Wunsch mit eingeschaltetem Licht), ohne jedes Mal ein Testbild aufzunehmen.
 5. Das Bild, das die KI bekommt, liegt danach unter `/media/zaehler_ablesung/<Zähler-ID>/letztes.jpg` (das unbeschnittene als `original.jpg`) und ist als Kamera-Entität **Letztes Bild** sichtbar.
 
+### Externe Beleuchtung
+
+Reicht das Licht der Kamera nicht oder spiegelt es, kann pro Zähler zusätzlich eine **externe Beleuchtung** eingeschaltet werden, z. B. LED-Module. Das geht mit jeder `light`- oder `switch`-Entität, der Abschnitt steht im Zähler-Editor unter **Externe Beleuchtung**. Ohne Entität verhält sich alles wie bisher.
+
+| Option | Key | Standard | Bedeutung |
+| --- | --- | --- | --- |
+| Externe Beleuchtung | `external_light` | leer | `light`- oder `switch`-Entität; leer = keine externe Beleuchtung |
+| Modus | `external_light_mode` | Nur während der Aufnahme (`capture`) | `capture`: vor den Bildern ein, danach aus. Dauerlicht (`permanent`): wird nur eingeschaltet, falls es aus ist, und nie ausgeschaltet |
+| Helligkeit | `external_light_brightness` | 100 % | Nur bei einer dimmbaren `light`-Entität; ein Schalter wird nur ein- und ausgeschaltet |
+| Vorlaufzeit | `external_light_lead_time` | 2 s | Wartezeit (0 bis 30 s) nach dem Einschalten, bevor das Licht der Kamera eingeschaltet und aufgenommen wird |
+| Danach ausschalten | `external_light_turn_off` | ja | Nur im Modus „Nur während der Aufnahme“ |
+
+Ablauf einer Ablesung oder eines Testbilds im Modus „Nur während der Aufnahme“: externe Beleuchtung ein (bei `light` mit der eingestellten Helligkeit), Vorlaufzeit abwarten, dann wie oben Licht der Kamera, Bilder und Auswertung durch die KI, danach externe Beleuchtung aus. Das Ausschalten passiert auch, wenn Aufnahme oder Auswertung fehlschlagen. Ist die Entität nicht verfügbar oder schlägt das Schalten fehl, steht eine Warnung im Log und es wird trotzdem abgelesen.
+
+Beispiel: ein LED-Modul als `light.zaehler_beleuchtung`, Modus „Nur während der Aufnahme“, Helligkeit 70 %, Vorlaufzeit 2 s, danach ausschalten. Bei jeder Ablesung geht das Modul 2 Sekunden vor den Bildern mit 70 % an und danach wieder aus.
+
 ### Ablesen mit Mehrheitsentscheid
 
 * Die KI bekommt das Bild und eine Anweisung, die sich aus Zählerart, Einheit, Nachkommastellen und deinen **Hinweisen** zusammensetzt (im Editor unter "Anweisung an die KI" einsehbar). Sie antwortet nur mit der Zahl oder mit "unlesbar".

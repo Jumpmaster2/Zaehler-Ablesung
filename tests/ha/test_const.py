@@ -30,3 +30,13 @@ def test_meter_values_converts_old_rotation() -> None:
     values = meter_values(new)
     assert values["rotate"] == -3.5
     assert values["crop_left"] == 10 and values["crop_bottom"] == 90
+
+
+def test_meter_values_without_external_light() -> None:
+    # meters of older versions have no external light settings: off, with the defaults
+    values = meter_values({"meter_type": "heat", "camera": "camera.heat_cam"})
+    assert "external_light" not in values
+    assert values["external_light_mode"] == "capture"
+    assert values["external_light_brightness"] == 100
+    assert values["external_light_lead_time"] == 2
+    assert values["external_light_turn_off"] is True

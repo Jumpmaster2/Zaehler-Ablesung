@@ -74,6 +74,24 @@
                 "discard_frames": "Pictures thrown away before the real one. Cameras with a buffer (ESP32-CAM) otherwise deliver an old picture without light."
               }
             },
+            "external_light_section": {
+              "name": "External light",
+              "description": "Optional extra light (light or switch entity) besides the light of the camera, e.g. LED modules. When it cannot be reached, the meter is read without it and a warning is logged.",
+              "data": {
+                "external_light": "External light",
+                "external_light_mode": "Mode",
+                "external_light_brightness": "Brightness",
+                "external_light_lead_time": "Lead time",
+                "external_light_turn_off": "Switch off afterwards"
+              },
+              "data_description": {
+                "external_light": "Optional. Light or switch entity that lights the display in addition. Leave empty when there is none.",
+                "external_light_mode": "Only while taking pictures: switched on before the pictures and off afterwards. Always on: only switched on when it is off, and left on.",
+                "external_light_brightness": "Only for a light entity that can be dimmed; a switch is just switched on and off.",
+                "external_light_lead_time": "Wait after switching the external light on, before the light of the camera is switched on and the pictures are taken.",
+                "external_light_turn_off": "Only in the mode \"Only while taking pictures\": switches the light off after the pictures, also when taking or reading them fails."
+              }
+            },
             "image_section": {
               "name": "Picture crop",
               "description": "Only this part of the picture is sent to the AI. Crop wide-angle cameras to the display; in the dashboard the crop can be drawn with the mouse.",
@@ -191,6 +209,24 @@
                 "discard_frames": "Pictures thrown away before the real one. Cameras with a buffer (ESP32-CAM) otherwise deliver an old picture without light."
               }
             },
+            "external_light_section": {
+              "name": "External light",
+              "description": "Optional extra light (light or switch entity) besides the light of the camera, e.g. LED modules. When it cannot be reached, the meter is read without it and a warning is logged.",
+              "data": {
+                "external_light": "External light",
+                "external_light_mode": "Mode",
+                "external_light_brightness": "Brightness",
+                "external_light_lead_time": "Lead time",
+                "external_light_turn_off": "Switch off afterwards"
+              },
+              "data_description": {
+                "external_light": "Optional. Light or switch entity that lights the display in addition. Leave empty when there is none.",
+                "external_light_mode": "Only while taking pictures: switched on before the pictures and off afterwards. Always on: only switched on when it is off, and left on.",
+                "external_light_brightness": "Only for a light entity that can be dimmed; a switch is just switched on and off.",
+                "external_light_lead_time": "Wait after switching the external light on, before the light of the camera is switched on and the pictures are taken.",
+                "external_light_turn_off": "Only in the mode \"Only while taking pictures\": switches the light off after the pictures, also when taking or reading them fails."
+              }
+            },
             "image_section": {
               "name": "Picture crop",
               "description": "Only this part of the picture is sent to the AI. Crop wide-angle cameras to the display; in the dashboard the crop can be drawn with the mouse.",
@@ -299,6 +335,12 @@
         "gas": "Gas meter",
         "electricity": "Electricity meter",
         "other": "Other meter"
+      }
+    },
+    "external_light_mode": {
+      "options": {
+        "capture": "Only while taking pictures",
+        "permanent": "Always on"
       }
     }
   },

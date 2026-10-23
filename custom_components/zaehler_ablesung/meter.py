@@ -13,7 +13,14 @@ from typing import Any
 
 from homeassistant.components import camera, persistent_notification
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    SERVICE_TURN_OFF,
+    SERVICE_TURN_ON,
+    STATE_ON,
+    STATE_UNAVAILABLE,
+)
+from homeassistant.core import HomeAssistant, callback, split_entity_id
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_track_time_interval
@@ -36,6 +43,11 @@ from .const import (
     CONF_DISCARD,
     CONF_ENHANCE,
     CONF_EXPOSURE,
+    CONF_EXTERNAL_LIGHT,
+    CONF_EXTERNAL_LIGHT_BRIGHTNESS,
+    CONF_EXTERNAL_LIGHT_LEAD_TIME,
+    CONF_EXTERNAL_LIGHT_MODE,
+    CONF_EXTERNAL_LIGHT_TURN_OFF,
     CONF_HINTS,
     CONF_HISTORY_HINT,
     CONF_INTERVAL,
@@ -58,6 +70,7 @@ from .const import (
     DEFAULTS,
     DOMAIN,
     EVENT_READING,
+    EXTERNAL_LIGHT_PERMANENT,
     HISTORY_KEEP,
     IMAGE_NAME,
     LOGGER,
@@ -81,6 +94,8 @@ type MeterConfigEntry = ConfigEntry[MeterManager]
 # Pause after the warm-up pictures before the picture that is read
 SETTLE_SECONDS = 1.0
 CAMERA_TIMEOUT = 15
+# longest wait for switching the external light
+EXTERNAL_LIGHT_TIMEOUT = 10
 
 
 @dataclass(slots=True)
@@ -262,6 +277,54 @@ class Meter:
                     await self._light(False)
                 except HomeAssistantError as err:
                     LOGGER.warning("%s: could not switch the light off: %s", self.title, err)
+
+    @contextlib.asynccontextmanager
+    async def _external_light(self) -> AsyncIterator[None]:
+        """External light (light or switch) around a run, outside the camera light.
+
+        Only during the pictures: on, wait the lead time, off afterwards (when set), also
+        after errors. Permanent: only switched on when it is off, never off. Problems
+        with the light are logged; the run goes on without it.
+        """
+        entity_id = self.opt(CONF_EXTERNAL_LIGHT)
+        state = self.hass.states.get(entity_id) if entity_id else None
+        if entity_id and (state is None or state.state == STATE_UNAVAILABLE):
+            LOGGER.warning("%s: external light %s is not available", self.title, entity_id)
+            entity_id = None
+        permanent = self.opt(CONF_EXTERNAL_LIGHT_MODE) == EXTERNAL_LIGHT_PERMANENT
+        try:
+            if (
+                entity_id
+                and not (permanent and state is not None and state.state == STATE_ON)
+                and await self._switch_external_light(entity_id, True)
+            ):
+                await asyncio.sleep(float(self.opt(CONF_EXTERNAL_LIGHT_LEAD_TIME)))
+            yield
+        finally:
+            if entity_id and not permanent and self.opt(CONF_EXTERNAL_LIGHT_TURN_OFF):
+                await self._switch_external_light(entity_id, False)
+
+    async def _switch_external_light(self, entity_id: str, on: bool) -> bool:
+        """Switch the external light; a light gets the brightness. False when it failed."""
+        domain = split_entity_id(entity_id)[0]
+        data: dict[str, Any] = {ATTR_ENTITY_ID: entity_id}
+        if on and domain == "light":
+            data["brightness_pct"] = int(self.opt(CONF_EXTERNAL_LIGHT_BRIGHTNESS))
+        try:
+            async with asyncio.timeout(EXTERNAL_LIGHT_TIMEOUT):
+                await self.hass.services.async_call(
+                    domain, SERVICE_TURN_ON if on else SERVICE_TURN_OFF, data, blocking=True
+                )
+        except Exception as err:  # the light must never stop a reading
+            LOGGER.warning(
+                "%s: could not switch the external light %s %s: %s",
+                self.title,
+                entity_id,
+                "on" if on else "off",
+                err,
+            )
+            return False
+        return True
 
     async def _skip_buffered(self) -> None:
         """Skip the pictures still in the camera buffers, taken before the light changed."""
@@ -463,7 +526,7 @@ class Meter:
             self.busy = "picture"
             self.notify()
             try:
-                async with self._session():
+                async with self._external_light(), self._session():
                     return await self.async_take_picture() is not None
             finally:
                 self.busy = None
@@ -477,7 +540,7 @@ class Meter:
             self.busy = "reading"
             self.notify()
             try:
-                async with self._session():
+                async with self._external_light(), self._session():
                     return await self._read()
             finally:
                 self.busy = None
