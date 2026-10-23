@@ -176,7 +176,7 @@ const STATUS_PILL = {
 // fields that follow the meter type while a new meter is edited
 const TYPE_FIELDS = ["unit", "decimals", "max_rate", "max_correction", "interval", "hints"];
 // sections shown collapsed in the editor
-const COLLAPSED = new Set(["checks_section", "notify_section"]);
+const COLLAPSED = new Set(["external_light_section", "checks_section", "notify_section"]);
 
 const esc = (value) =>
   String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -913,7 +913,7 @@ class ZaehlerAblesungPanel extends HTMLElement {
       .map(({ id, fields }) => {
         const [name, desc] = this.labels.sections[id] || [id, ""];
         const html = Object.entries(fields)
-          .filter(([key]) => key !== "prompt")
+          .filter(([key]) => key !== "prompt" && !this._hiddenField(key, e.data))
           .map(([key, spec]) => this._field("edit", key, spec, e.data[key]))
           .join("");
         const crop = id === "image_section" ? this._cropHtml() : "";
@@ -937,6 +937,13 @@ class ZaehlerAblesungPanel extends HTMLElement {
         <button class="btn" data-action="close-edit">${esc(ui.cancel)}</button>
         <button class="btn primary" data-action="save-meter">${esc(ui.save)}</button></div>
     </div>`;
+  }
+
+  // fields without effect for the chosen external light
+  _hiddenField(key, data) {
+    if (key === "external_light_brightness") return String(data.external_light || "").startsWith("switch.");
+    if (key === "external_light_turn_off") return data.external_light_mode === "permanent";
+    return false;
   }
 
   // ------------------------------------------------------------------ settings
@@ -1083,6 +1090,7 @@ class ZaehlerAblesungPanel extends HTMLElement {
       if (["light", "light_brightness"].includes(key)) this._liveLightSwitch();
     }
     if (cardId === "edit" && key === "unit" && isChange) this._rerenderContent();
+    if (cardId === "edit" && ["external_light", "external_light_mode"].includes(key) && isChange) this._rerenderContent();
   }
 
   _rerenderContent(focusSelector) {
