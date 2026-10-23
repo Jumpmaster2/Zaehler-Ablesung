@@ -116,6 +116,8 @@ async def test_meter_subentry(hass: HomeAssistant, base) -> None:
     )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reconfigure_successful"
+    # the entry is reloaded; wait for it, otherwise its timer can outlive the test
+    await hass.async_block_till_done()
     assert entry.subentries[sub.subentry_id].title == "Cold water"
     assert entry.subentries[sub.subentry_id].data["decimals"] == 2
 
@@ -194,6 +196,7 @@ async def test_meter_external_light(hass: HomeAssistant, base) -> None:
         },
     )
     assert result["reason"] == "reconfigure_successful"
+    await hass.async_block_till_done()
     data = entry.subentries[sub.subentry_id].data
     assert data["external_light"] == "switch.meter_lamp"
     assert data["external_light_mode"] == "permanent"
@@ -204,6 +207,7 @@ async def test_meter_external_light(hass: HomeAssistant, base) -> None:
         result["flow_id"], {**DETAILS, "name": "Water", "meter_type": "water"}
     )
     assert result["reason"] == "reconfigure_successful"
+    await hass.async_block_till_done()
     assert "external_light" not in entry.subentries[sub.subentry_id].data
 
     # only light and switch entities, only the two modes
